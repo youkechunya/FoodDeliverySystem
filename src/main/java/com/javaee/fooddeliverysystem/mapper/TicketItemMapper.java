@@ -1,4 +1,4 @@
 package com.javaee.fooddeliverysystem.mapper;
 
-public class TicketItemMapper {
+public interface TicketItemMapper {
 }

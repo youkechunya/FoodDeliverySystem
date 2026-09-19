@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.PersonalInformationMapper">
+    <resultMap id="infoMap" type="com.javaee.fooddeliverysystem.entity.PersonalInformation">
+        <id column="id" property="id"/>
+        <result column="accountId" property="accountId"/>
+        <result column="address" property="address"/>
+    </resultMap>
+    <select id="selectAll" resultMap="infoMap">
+        select id,accountId,address from personal_information
+    </select>
+    <select id="selectByAccountId" resultMap="infoMap">
+        select id,accountId,address from personal_information where accountId=#{accountId}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into personal_information(accountId,address) values(#{accountId},#{address})
+    </insert>
+    <update id="update">
+        update personal_information set accountId=#{accountId},address=#{address} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from personal_information where id=#{id}
+    </delete>
+</mapper>

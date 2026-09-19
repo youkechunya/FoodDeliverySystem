@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.StoreItemMapper">
+    <select id="selectItemIdByStoreId" resultType="java.lang.Integer">
+        select itemId from store_item where storeId=#{storeId}
+    </select>
+    <insert id="insert">
+        insert into store_item(storeId,itemId) values(#{storeId},#{itemId})
+    </insert>
+    <delete id="delete">
+        delete from store_item where storeId=#{storeId} and itemId=#{itemId}
+    </delete>
+</mapper>

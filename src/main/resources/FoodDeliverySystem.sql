@@ -1,3 +1,6 @@
+create database foodDeliverySystem;
+use foodDeliverySystem;
+
 create table account(
     id int primary key auto_increment,
     account varchar(20) not null unique comment '账号名',
