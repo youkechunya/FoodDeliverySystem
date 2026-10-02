@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.TicketItemMapper">
+    <resultMap id="ticketItemMap" type="com.entity.TicketItem">
+        <id column="id" property="id"/>
+        <result column="ticketId" property="ticketId"/>
+        <result column="itemId" property="itemId"/>
+        <result column="quantity" property="quantity"/>
+        <result column="price" property="price"/>
+    </resultMap>
+    <select id="selectByTicketId" resultMap="ticketItemMap">
+        select id,ticketId,itemId,quantity,price from ticket_item where ticketId=#{ticketId}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into ticket_item(ticketId,itemId,quantity,price)
+        values(#{ticketId},#{itemId},#{quantity},#{price})
+    </insert>
+    <delete id="deleteById">
+        delete from ticket_item where id=#{id}
+    </delete>
+</mapper>

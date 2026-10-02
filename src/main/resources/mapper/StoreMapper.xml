@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.StoreMapper">
+    <resultMap id="storeMap" type="com.javaee.fooddeliverysystem.entity.Store">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="address" property="address"/>
+        <result column="score" property="score"/>
+    </resultMap>
+    <select id="selectAll" resultMap="storeMap">
+        select id,name,address,score from store
+    </select>
+    <select id="selectById" resultMap="storeMap">
+        select id,name,address,score from store where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into store(name,address,score) values(#{name},#{address},#{score})
+    </insert>
+    <update id="update">
+        update store set name=#{name},address=#{address},score=#{score} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from store where id=#{id}
+    </delete>
+</mapper>

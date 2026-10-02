@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.TicketMapper">
+    <resultMap id="ticketMap" type="com.entity.Ticket">
+        <id column="id" property="id"/>
+        <result column="publishDate" property="publishDate"/>
+        <result column="address" property="address"/>
+        <result column="storeId" property="storeId"/>
+        <result column="status" property="status"/>
+        <result column="deliveryGuyId" property="deliveryGuyId"/>
+        <result column="note" property="note"/>
+    </resultMap>
+    <select id="selectAll" resultMap="ticketMap">
+        select id,publishDate,address,storeId,status,deliveryGuyId,note from ticket
+    </select>
+    <select id="selectById" resultMap="ticketMap">
+        select id,publishDate,address,storeId,status,deliveryGuyId,note from ticket where id=#{id}
+    </select>
+    <select id="selectByStoreId" resultMap="ticketMap">
+        select id,publishDate,address,storeId,status,deliveryGuyId,note from ticket where storeId=#{storeId}
+    </select>
+    <select id="selectByDeliveryGuyId" resultMap="ticketMap">
+        select id,publishDate,address,storeId,status,deliveryGuyId,note from ticket where deliveryGuyId=#{deliveryGuyId}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into ticket(publishDate,address,storeId,status,deliveryGuyId,note)
+        values(#{publishDate},#{address},#{storeId},#{status},#{deliveryGuyId},#{note})
+    </insert>
+    <update id="update">
+        update ticket set publishDate=#{publishDate},address=#{address},storeId=#{storeId},
+        status=#{status},deliveryGuyId=#{deliveryGuyId},note=#{note} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from ticket where id=#{id}
+    </delete>
+</mapper>
+

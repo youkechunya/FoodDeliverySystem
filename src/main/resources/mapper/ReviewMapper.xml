@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.ReviewMapper">
+    <resultMap id="reviewMap" type="com.entity.Review">
+        <id column="id" property="id"/>
+        <result column="userId" property="userId"/>
+        <result column="storeId" property="storeId"/>
+        <result column="content" property="content"/>
+    </resultMap>
+    <select id="selectAll" resultMap="reviewMap">
+        select id,userId,storeId,content from review
+    </select>
+    <select id="selectByStoreId" resultMap="reviewMap">
+        select id,userId,storeId,content from review where storeId=#{storeId}
+    </select>
+    <select id="selectByUserId" resultMap="reviewMap">
+        select id,userId,storeId,content from review where userId=#{userId}
+    </select>
+    <select id="selectById" resultMap="reviewMap">
+        select id,userId,storeId,content from review where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into review(userId,storeId,content) values(#{userId},#{storeId},#{content})
+    </insert>
+    <update id="update">
+        update review set userId=#{userId},storeId=#{storeId},content=#{content} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from review where id=#{id}
+    </delete>
+</mapper>

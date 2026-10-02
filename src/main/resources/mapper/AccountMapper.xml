@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.AccountMapper">
+    <resultMap id="accountMap" type="com.javaee.fooddeliverysystem.entity.Account">
+        <id column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="status" property="status"/>
+    </resultMap>
+    <select id="selectAll" resultMap="accountMap">
+        select id,account,password,status from account
+    </select>
+    <select id="selectById" resultMap="accountMap">
+        select id,account,password,status from account where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into account(account,password,status) values(#{account},#{password},#{status})
+    </insert>
+    <update id="update">
+        update account set account=#{account},password=#{password},status=#{status} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from account where id=#{id}
+    </delete>
+</mapper>

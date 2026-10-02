@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.ItemTypeMapper">
+    <resultMap id="itemTypeMap" type="com.entity.ItemType">
+        <id column="id" property="id"/>
+        <result column="type" property="type"/>
+    </resultMap>
+    <select id="selectAll" resultMap="itemTypeMap">
+        select id,type from item_type
+    </select>
+    <select id="selectById" resultMap="itemTypeMap">
+        select id,type from item_type where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into item_type(type) values(#{type})
+    </insert>
+    <update id="update">
+        update item_type set type=#{type} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from item_type where id=#{id}
+    </delete>
+</mapper>
+
