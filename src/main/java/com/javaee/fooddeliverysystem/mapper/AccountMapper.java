@@ -2,7 +2,6 @@ package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Account;
 import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 
 public interface AccountMapper {

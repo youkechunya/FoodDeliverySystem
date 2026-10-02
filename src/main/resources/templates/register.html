@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>注册 - 游戏平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1f2d3d, #2d3e50);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        .register-box {
+            width: 440px;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 12px;
+            color: #303133;
+        }
+
+        .sub-title {
+            text-align: center;
+            color: #909399;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .input-box {
+            margin-bottom: 16px;
+        }
+
+        input {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            font-size: 15px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #409eff;
+        }
+
+        .btn {
+            width: 100%;
+            height: 42px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #337ecc;
+        }
+
+        .msg {
+            color: #f56c6c;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .link-box {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #606266;
+        }
+
+        .link-box a {
+            color: #409eff;
+            text-decoration: none;
+        }
+
+        .link-box a:hover {
+            text-decoration: underline;
+        }
+
+        /* 角色单选样式，和登录页保持一致 */
+        .role-box {
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        .role-box label {
+            margin-right: 16px;
+            cursor: pointer;
+        }
+        .role-box input[type="radio"] {
+            width: auto;
+            height: auto;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="register-box">
+    <h2>用户注册</h2>
+    <div class="sub-title">创建你的外卖平台账号</div>
+
+    <div class="msg" th:if="${msg != null}" th:text="${msg}"></div>
+
+    <form th:action="@{/register}" method="post">
+        <div class="input-box">
+            <input type="text" name="username" placeholder="请输入用户名" required autocomplete="username">
+        </div>
+
+        <div class="input-box">
+            <input type="password" name="password" placeholder="请输入密码" required autocomplete="new-password">
+        </div>
+
+        <div class="input-box">
+            <input type="password" name="confirmPassword" placeholder="请再次输入密码" required autocomplete="new-password">
+        </div>
+
+        <div class="input-box">
+            <input type="phone" name="phone" placeholder="请输入手机号" required autocomplete="phone">
+        </div>
+
+        <!-- 角色选择，和登录页面一致：用户/外卖员/店家，默认选中用户，必选 -->
+        <div class="role-box">
+            <label>
+                <input type="radio" name="role" value="user" checked required> 我是用户
+            </label>
+            <label>
+                <input type="radio" name="role" value="delivery"> 我是外卖员
+            </label>
+            <label>
+                <input type="radio" name="role" value="shop"> 我是店家
+            </label>
+        </div>
+
+        <button type="submit" class="btn">注册</button>
+    </form>
+
+    <div class="link-box">
+        已有账号？
+        <a th:href="@{/login}">返回登录</a>
+    </div>
+</div>
+</body>
+</html>
