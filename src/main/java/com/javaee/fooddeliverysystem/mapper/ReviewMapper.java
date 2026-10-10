@@ -1,10 +1,12 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Review;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface ReviewMapper {
     List<Review> selectAll();
     List<Review> selectByStoreId(@Param("storeId") Integer storeId);

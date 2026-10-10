@@ -1,10 +1,12 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Item;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 // ItemMapper.java
 public interface ItemMapper {
     List<Item> selectAll();

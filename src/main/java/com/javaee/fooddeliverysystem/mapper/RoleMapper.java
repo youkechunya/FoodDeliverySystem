@@ -2,8 +2,10 @@ package com.javaee.fooddeliverysystem.mapper;
 
 import java.util.List;
 import com.javaee.fooddeliverysystem.entity.Role;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+@Mapper
 public interface RoleMapper {
     /// 选中所有
     List<Role> selectAll();

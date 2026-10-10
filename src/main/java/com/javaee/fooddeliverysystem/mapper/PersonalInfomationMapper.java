@@ -1,10 +1,12 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.PersonalInformation;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface PersonalInfomationMapper {
     /// 选中所有个人信息
     List<PersonalInformation> selectAll();

@@ -1,9 +1,11 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Account;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
+@Mapper
 public interface AccountMapper {
     /// 查询全部账号
     List<Account> selectAll();

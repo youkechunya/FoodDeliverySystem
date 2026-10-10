@@ -1,9 +1,11 @@
 package com.javaee.fooddeliverysystem.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface StoreItemMapper {
     /// 查询店铺拥有的商品 ID
     List<Integer> selectItemIdByStoreId(@Param("storeId") Integer storeId);

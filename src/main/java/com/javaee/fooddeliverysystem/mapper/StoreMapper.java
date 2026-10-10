@@ -1,10 +1,12 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Store;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface StoreMapper {
     /// 选中所有商店
     List<Store> selectAll();

@@ -1,4 +1,14 @@
 package com.javaee.fooddeliverysystem.service;
 
-public class RoleService {
+import com.javaee.fooddeliverysystem.entity.Role;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface RoleService {
+    List<Role> selectAll();
+    Role selectById(@Param("id") Integer id);
+    boolean insert(Role role);
+    boolean update(Role role);
+    boolean deleteById(@Param("id") Integer id);
 }

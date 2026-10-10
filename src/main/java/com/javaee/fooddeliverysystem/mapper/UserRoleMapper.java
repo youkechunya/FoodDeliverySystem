@@ -1,10 +1,12 @@
 package com.javaee.fooddeliverysystem.mapper;
 
 import com.javaee.fooddeliverysystem.entity.Role;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface UserRoleMapper {
     /// 通过 ID 查询角色
     List<Role> selectRolesByUserId(@Param("userId") Integer userId);
