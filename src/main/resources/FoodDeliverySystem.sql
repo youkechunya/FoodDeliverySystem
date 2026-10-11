@@ -2,92 +2,95 @@ create database foodDeliverySystem;
 use foodDeliverySystem;
 
 create table account(
-    id int primary key auto_increment,
-    account varchar(20) not null unique comment '账号名',
-    password varchar(20) not null comment '密码',
-    status varchar(10) not null comment '当前状态（正常，冻结）'
+id int primary key auto_increment,
+account varchar(20) not null unique comment '账号名',
+password varchar(20) not null comment '密码',
+status varchar(10) not null comment '当前状态（正常，冻结）'
 );
 
 create table role(
-    id int primary key auto_increment,
-    role varchar(10)
+id int primary key auto_increment,
+role varchar(10)
 );
 
 create table personal_information(
-    id int primary key auto_increment,
-    accountId int not null comment '账号',
-    address varchar(50) comment '地址',
-    foreign key (accountId) references account(id)
+id int primary key auto_increment,
+accountId int not null comment '账号',
+address varchar(50) comment '地址',
+foreign key (accountId) references account(id)
 );
 
 create table store(
-    id int primary key auto_increment,
-    name varchar(50) not null comment '店铺名称',
-    address varchar(50) comment '地址',
-    score decimal(2,1) comment '评分'
+id int primary key auto_increment,
+name varchar(50) not null comment '店铺名称',
+address varchar(50) comment '地址',
+score decimal(2,1) comment '评分',
+status varchar(10) default '待审核' comment '审核状态（待审核，通过，驳回）'
 );
 
 create table item_type(
-    id int primary key auto_increment,
-    type varchar(10) not null comment '类型名'
+id int primary key auto_increment,
+type varchar(10) not null comment '类型名'
 );
 
 create table item(
-    id int primary key auto_increment,
-    name varchar(20) not null comment '商品名称',
-    typeId int comment '商品类型',
-    price decimal(10,2) comment '价格',
-    sales int comment '销量',
-    remain int comment '库存量',
-    note varchar(50) comment '备注',
-    foreign key (typeId) references item_type(id)
+id int primary key auto_increment,
+name varchar(20) not null comment '商品名称',
+typeId int comment '商品类型',
+price decimal(10,2) comment '价格',
+sales int comment '销量',
+remain int comment '库存量',
+note varchar(50) comment '备注',
+foreign key (typeId) references item_type(id)
 );
 
 create table ticket(
-    id int primary key auto_increment,
-    publishDate datetime comment '订单发布日期',
-    address varchar(50) comment '地址',
-    storeId int comment '商家',
-    status varchar(10) comment '状态',
-    deliveryGuyId int comment '配送员',
-    note varchar(100) comment '备注',
-    foreign key (storeId) references store(id),
-    foreign key (deliveryGuyId) references account(id)
+id int primary key auto_increment,
+publishDate datetime comment '订单发布日期',
+address varchar(50) comment '地址',
+storeId int comment '商家',
+status varchar(10) comment '状态',
+deliveryGuyId int comment '配送员',
+note varchar(100) comment '备注',
+userId int comment '下单顾客',
+foreign key (storeId) references store(id),
+foreign key (deliveryGuyId) references account(id),
+foreign key (userId) references account(id)
 );
 
 create table ticket_item(
-    id int primary key auto_increment,
-    ticketId int,
-    itemId int ,
-    quantity int comment '数量',
-    price decimal(10,2) comment '单价',
-    foreign key (ticketId) references ticket(id),
-    foreign key (itemId) references item(id)
+id int primary key auto_increment,
+ticketId int,
+itemId int,
+quantity int comment '数量',
+price decimal(10,2) comment '单价',
+foreign key (ticketId) references ticket(id),
+foreign key (itemId) references item(id)
 );
 
 create table review(
-    id int primary key auto_increment,
-    userId int,
-    storeId int,
-    content varchar(50),
-    foreign key (userId) references account(id),
-    foreign key (storeId) references store(id)
+id int primary key auto_increment,
+userId int,
+storeId int,
+content varchar(50),
+foreign key (userId) references account(id),
+foreign key (storeId) references store(id)
 );
 
 create table user_role(
-    userId int,
-    roleId int,
-    primary key (userId, roleId),
-    foreign key (userId) references account(id),
-    foreign key (roleId) references role(id)
+userId int,
+roleId int,
+primary key (userId, roleId),
+foreign key (userId) references account(id),
+foreign key (roleId) references role(id)
 );
 
 create table store_item(
-    storeId int,
-    itemId int,
-    primary key (storeId, itemId),
-    foreign key (storeId) references store(id),
-    foreign key (itemId) references item(id)
+storeId int,
+itemId int,
+primary key (storeId, itemId),
+foreign key (storeId) references store(id),
+foreign key (itemId) references item(id)
 );
 
 create table permission(
@@ -150,17 +153,17 @@ insert into personal_information (id, accountId, address) values
 (9, 9, '妖怪之山守矢神社'),
 (10, 10, '雾之湖湖畔');
 
-insert into store (id, name, address, score) values
-(1, '博丽神社团子铺', '幻想乡博丽神社', 4.9),
-(2, '雾雨魔法咖啡厅', '魔法森林雾雨魔法店', 4.7),
-(3, '红魔馆红茶馆', '红魔馆大厅', 4.8),
-(4, '白玉楼食堂', '白玉楼庭院', 4.6),
-(5, '永远亭药膳外卖', '迷途竹林永远亭', 4.9),
-(6, '守矢神社快餐', '妖怪之山守矢神社', 4.5),
-(7, '太阳花田轻食', '太阳花田', 4.8),
-(8, '地灵殿烧烤', '旧地狱地灵殿', 4.4),
-(9, '命莲寺素食', '命莲寺', 4.7),
-(10, '香霖堂小吃', '魔法森林香霖堂', 4.3);
+insert into store (id, name, address, score, status) values
+(1, '博丽神社团子铺', '幻想乡博丽神社', 4.9, '通过'),
+(2, '雾雨魔法咖啡厅', '魔法森林雾雨魔法店', 4.7, '通过'),
+(3, '红魔馆红茶馆', '红魔馆大厅', 4.8, '通过'),
+(4, '白玉楼食堂', '白玉楼庭院', 4.6, '通过'),
+(5, '永远亭药膳外卖', '迷途竹林永远亭', 4.9, '通过'),
+(6, '守矢神社快餐', '妖怪之山守矢神社', 4.5, '待审核'),
+(7, '太阳花田轻食', '太阳花田', 4.8, '待审核'),
+(8, '地灵殿烧烤', '旧地狱地灵殿', 4.4, '待审核'),
+(9, '命莲寺素食', '命莲寺', 4.7, '待审核'),
+(10, '香霖堂小吃', '魔法森林香霖堂', 4.3, '待审核');
 
 insert into item_type (id, type) values
 (1, '主食'),
@@ -192,17 +195,17 @@ insert into user_role (userId, roleId) values
 (9, 5),
 (10, 5);
 
-insert into ticket (id, publishDate, address, storeId, status, deliveryGuyId, note) values
-(1, '2026-09-01 12:00:00', '幻想乡博丽神社', 1, '已完成', 3, '放在赛钱箱旁边'),
-(2, '2026-09-02 14:30:00', '魔法森林雾雨魔法店', 2, '配送中', 3, '不要香菜'),
-(3, '2026-09-03 10:15:00', '红魔馆大厅', 3, '已完成', 3, '快点送'),
-(4, '2026-09-04 18:20:00', '白玉楼庭院', 4, '待接单', 3, '放前台'),
-(5, '2026-09-05 09:00:00', '迷途竹林永远亭', 5, '已完成', 3, '无'),
-(6, '2026-09-06 21:45:00', '妖怪之山守矢神社', 6, '配送中', 3, '多加糖'),
-(7, '2026-09-07 11:10:00', '太阳花田', 7, '已完成', 3, '不要辣'),
-(8, '2026-09-08 16:30:00', '旧地狱地灵殿', 8, '待接单', 3, '放保安室'),
-(9, '2026-09-09 13:50:00', '命莲寺', 9, '已完成', 3, '带包纸巾'),
-(10, '2026-09-10 19:00:00', '魔法森林香霖堂', 10, '配送中', 3, '轻拿轻放');
+insert into ticket (id, publishDate, address, storeId, status, deliveryGuyId, note, userId) values
+(1, '2026-09-01 12:00:00', '幻想乡博丽神社', 1, '已完成', 3, '放在赛钱箱旁边', 5),
+(2, '2026-09-02 14:30:00', '魔法森林雾雨魔法店', 2, '配送中', 3, '不要香菜', 5),
+(3, '2026-09-03 10:15:00', '红魔馆大厅', 3, '已完成', 3, '快点送', 6),
+(4, '2026-09-04 18:20:00', '白玉楼庭院', 4, '待接单', 3, '放前台', 6),
+(5, '2026-09-05 09:00:00', '迷途竹林永远亭', 5, '已完成', 3, '无', 7),
+(6, '2026-09-06 21:45:00', '妖怪之山守矢神社', 6, '配送中', 3, '多加糖', 7),
+(7, '2026-09-07 11:10:00', '太阳花田', 7, '已完成', 3, '不要辣', 8),
+(8, '2026-09-08 16:30:00', '旧地狱地灵殿', 8, '待接单', 3, '放保安室', 8),
+(9, '2026-09-09 13:50:00', '命莲寺', 9, '已完成', 3, '带包纸巾', 9),
+(10, '2026-09-10 19:00:00', '魔法森林香霖堂', 10, '配送中', 3, '轻拿轻放', 9);
 
 insert into ticket_item (id, ticketId, itemId, quantity, price) values
 (1, 1, 1, 2, 15.00),
@@ -241,40 +244,6 @@ insert into store_item (storeId, itemId) values
 (10, 10);
 
 insert into permission (name, url, roleId) values
-('用户管理', '/api/admin/account/page', 1),
-('角色管理', '/api/admin/role/page', 1),
-('权限管理', '/api/admin/permission/page', 1),
-('店铺管理', '/api/admin/store/page', 1),
-('店铺审核', '/api/audit/store/page', 4),
-('评价仲裁', '/api/audit/review/page', 4),
-('店铺', '/api/customer/store/page', 5),
-('购物车', '/api/customer/cart/page', 5),
-('我的订单', '/api/customer/ticket/page', 5),
-('评价', '/api/customer/review/page', 5),
-('可接订单', '/api/delivery/ticket/page', 3),
-('我的配送', '/api/delivery/ticket/mine/page', 3),
-('店铺信息', '/api/store/info/page', 2),
-('商品管理', '/api/store/item/page', 2),
-('店铺订单', '/api/store/ticket/page', 2),
-('投诉处理', '/api/store/complaint/page', 2);
-
-insert into menu (name, url, roleId) values
-('用户管理', '/api/admin/account/page', 1),
-('角色管理', '/api/admin/role/page', 1),
-('权限管理', '/api/admin/permission/page', 1),
-('店铺管理', '/api/admin/store/page', 1),
-('店铺审核', '/api/audit/store/page', 4),
-('评价仲裁', '/api/audit/review/page', 4),
-('店铺', '/api/customer/store/page', 5),
-('购物车', '/api/customer/cart/page', 5),
-('我的订单', '/api/customer/ticket/page', 5),
-('评价', '/api/customer/review/page', 5),
-('可接订单', '/api/delivery/ticket/page', 3),
-('我的配送', '/api/delivery/ticket/mine/page', 3),
-('店铺信息', '/api/store/info/page', 2),
-('商品管理', '/api/store/item/page', 2),
-('店铺订单', '/api/store/ticket/page', 2),
-('投诉处理', '/api/store/complaint/page', 2);insert into permission (name, url, roleId) values
 ('用户管理', '/api/admin/account/page', 1),
 ('角色管理', '/api/admin/role/page', 1),
 ('权限管理', '/api/admin/permission/page', 1),
