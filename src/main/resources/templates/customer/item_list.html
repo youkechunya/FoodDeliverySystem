@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>店铺商品</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a class="active" th:href="@{/api/customer/store/page}">店铺</a>
+            <a th:href="@{/api/customer/cart/page}">购物车</a>
+            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
+            <a th:href="@{/api/customer/review/page}">评价</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4 id="pageTitle">店铺商品</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">customer</span>
+        </header>
+        <section class="content-body">
+
+            <div class="card" id="storeCard">
+                <div class="card-title">店铺信息</div>
+                <table>
+                    <tbody>
+                    <tr><th style="width:120px;">店铺名</th><td id="storeName">-</td></tr>
+                    <tr><th>地址</th><td id="storeAddress">-</td></tr>
+                    <tr><th>评分</th><td id="storeScore">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>商品列表</span>
+                    <button class="btn btn-outline btn-sm" onclick="goCart()">前往购物车</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>单价</th>
+                        <th>销量</th>
+                        <th>库存</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    // 从 URL 中取 storeId
+    const params = new URLSearchParams(location.search);
+    const storeId = parseInt(params.get('storeId')) || 0;
+
+    let pageNum = 1;
+    const pageSize = 5;
+
+    // ---------- 店铺信息 ----------
+    async function loadStore() {
+        if (!storeId) return;
+        try {
+            const s = await request(`/api/customer/store/${storeId}`);
+            if (s) {
+                document.getElementById('storeName').textContent = s.name ?? '-';
+                document.getElementById('storeAddress').textContent = s.address ?? '-';
+                document.getElementById('storeScore').textContent = s.score ?? '-';
+                document.getElementById('pageTitle').textContent = (s.name ?? '店铺') + ' - 商品';
+            }
+        } catch (e) {
+            toast('店铺信息加载失败');
+        }
+    }
+
+    // ---------- 商品列表 ----------
+    async function loadItems() {
+        const data = await request(`/api/customer/item/list?pageNum=${pageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;">暂无商品</td></tr>`;
+            return;
+        }
+
+        data.list.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${it.id}</td>
+                <td>${it.name}</td>
+                <td>${it.price ?? '-'}</td>
+                <td>${it.sales ?? 0}</td>
+                <td>${it.remain ?? 0}</td>
+                <td>${it.note ?? ''}</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="addToCart(${it.id}, '${escapeQuotes(it.name)}', ${it.price})">加入购物车</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+
+        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
+            pageNum = p;
+            loadItems();
+        });
+    }
+
+    // ---------- 加入购物车（localStorage） ----------
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '[]');
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    function addToCart(itemId, name, price) {
+        if (!storeId) {
+            toast('缺少店铺信息，无法加入购物车');
+            return;
+        }
+        const cart = getCart();
+
+        // 同一店铺才允许合并，避免一个订单跨店铺
+        if (cart.length > 0 && cart[0].storeId !== storeId) {
+            if (!confirm('购物车中已有其他店铺的商品，是否清空后重新加入？')) return;
+            cart.length = 0;
+        }
+
+        const exist = cart.find(c => c.itemId === itemId);
+        if (exist) {
+            exist.quantity += 1;
+        } else {
+            cart.push({
+                itemId: itemId,
+                name: name,
+                price: parseFloat(price) || 0,
+                quantity: 1,
+                storeId: storeId
+            });
+        }
+        saveCart(cart);
+        toast('已加入购物车');
+    }
+
+    function goCart() {
+        location.href = '/api/customer/cart/page';
+    }
+
+    // 防止商品名里的单引号破坏 onclick 字符串
+    function escapeQuotes(str) {
+        return String(str).replace(/'/g, "\\'");
+    }
+
+    loadStore();
+    loadItems();
+</script>
+</body>
+</html>

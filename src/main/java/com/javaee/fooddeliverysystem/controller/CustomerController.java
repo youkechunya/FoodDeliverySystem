@@ -171,4 +171,9 @@ public class CustomerController {
         }
         return result;
     }
+
+    @GetMapping("/item/page")
+    public String itemPage() {
+        return "/customer/item_list";
+    }
 }

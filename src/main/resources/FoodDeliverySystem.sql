@@ -1,3 +1,4 @@
+drop database if exists foodDeliverySystem;
 create database foodDeliverySystem;
 use foodDeliverySystem;
 
