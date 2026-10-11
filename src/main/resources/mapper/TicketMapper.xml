@@ -11,30 +11,36 @@
         <result column="status" property="status"/>
         <result column="deliveryGuyId" property="deliveryGuyId"/>
         <result column="note" property="note"/>
+        <result column="userId" property="userId"/>
     </resultMap>
 
     <select id="selectAll" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note from ticket
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId from ticket
     </select>
 
     <select id="selectById" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
         from ticket where id = #{id}
     </select>
 
     <select id="selectByStoreId" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
         from ticket where storeId = #{storeId}
     </select>
 
     <select id="selectByDeliveryGuyId" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
         from ticket where deliveryGuyId = #{deliveryGuyId}
     </select>
 
+    <select id="selectByUserId" resultMap="ticketMap">
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
+        from ticket where userId = #{userId}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into ticket(publishDate, address, storeId, status, deliveryGuyId, note)
-        values(#{publishDate}, #{address}, #{storeId}, #{status}, #{deliveryGuyId}, #{note})
+        insert into ticket(publishDate, address, storeId, status, deliveryGuyId, note, userId)
+        values(#{publishDate}, #{address}, #{storeId}, #{status}, #{deliveryGuyId}, #{note}, #{userId})
     </insert>
 
     <update id="update">
@@ -44,7 +50,8 @@
             storeId = #{storeId},
             status = #{status},
             deliveryGuyId = #{deliveryGuyId},
-            note = #{note}
+            note = #{note},
+            userId = #{userId}
         where id = #{id}
     </update>
 

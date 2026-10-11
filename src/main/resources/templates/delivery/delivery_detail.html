@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的配送</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:href="@{/api/delivery/ticket/page}">可接订单</a>
+            <a class="active" th:href="@{/api/delivery/ticket/mine/page}">我的配送</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>我的配送</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">delivery</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">配送中</div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>地址</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    const deliveryGuyId = /*[[${session.loginUser.id}]]*/ 0;
+
+    async function load() {
+        const list = await request(`/api/delivery/ticket/mine/${deliveryGuyId}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        list.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${t.id}</td>
+                <td>${t.address}</td>
+                <td>${t.status}</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="updateStatus(${t.id}, '配送中')">配送中</button>
+                    <button class="btn btn-outline btn-sm" onclick="updateStatus(${t.id}, '已完成')">已完成</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function updateStatus(id, status) {
+        const res = await request(`/api/delivery/ticket/status/${id}?status=${encodeURIComponent(status)}`, { method: 'PUT' });
+        toast(res.message);
+        load();
+    }
+
+    load();
+</script>
+</body>
+</html>

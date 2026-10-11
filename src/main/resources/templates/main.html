@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>主页 - 快餐订制与配送系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:each="m : ${menus}"
+               th:href="@{${m.url}}"
+               th:text="${m.name}">菜单</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>欢迎使用快餐订制与配送系统</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">用户</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">系统概览</div>
+                <p>请从右侧菜单选择功能。</p>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -2,9 +2,11 @@ package com.javaee.fooddeliverysystem.controller;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.javaee.fooddeliverysystem.entity.Complaint;
 import com.javaee.fooddeliverysystem.entity.Item;
 import com.javaee.fooddeliverysystem.entity.Store;
 import com.javaee.fooddeliverysystem.entity.Ticket;
+import com.javaee.fooddeliverysystem.service.ComplaintService;
 import com.javaee.fooddeliverysystem.service.ItemService;
 import com.javaee.fooddeliverysystem.service.StoreService;
 import com.javaee.fooddeliverysystem.service.TicketService;
@@ -16,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// 商家端
 @Controller
 @RequestMapping("/api/store")
 public class StoreController {
@@ -30,19 +31,27 @@ public class StoreController {
     @Autowired
     private TicketService ticketService;
 
+    @Autowired
+    private ComplaintService complaintService;
+
     @GetMapping("/info/page")
     public String infoPage() {
-        return "store/store_info";
+        return "store/store_index";
     }
 
     @GetMapping("/item/page")
     public String itemPage() {
-        return "store/item_list";
+        return "store/goods_manage";
     }
 
     @GetMapping("/ticket/page")
     public String ticketPage() {
-        return "store/ticket_list";
+        return "store/store_order";
+    }
+
+    @GetMapping("/complaint/page")
+    public String complaintPage() {
+        return "store/complaint_handle";
     }
 
     @GetMapping("/info/{id}")
@@ -143,6 +152,31 @@ public class StoreController {
         boolean success = ticketService.update(ticket);
         result.put("success", success);
         result.put("message", success ? "更新成功" : "更新失败");
+        return result;
+    }
+
+    @GetMapping("/complaint/list/{storeId}")
+    @ResponseBody
+    public List<Complaint> listComplaints(@PathVariable Integer storeId) {
+        return complaintService.selectByStoreId(storeId);
+    }
+
+    @PutMapping("/complaint/reply/{id}")
+    @ResponseBody
+    public Map<String, Object> replyComplaint(@PathVariable Integer id,
+                                              @RequestParam String reply) {
+        Map<String, Object> result = new HashMap<>();
+        Complaint complaint = complaintService.selectById(id);
+        if (complaint == null) {
+            result.put("success", false);
+            result.put("message", "投诉不存在");
+            return result;
+        }
+        complaint.setReply(reply);
+        complaint.setStatus("已处理");
+        boolean success = complaintService.update(complaint);
+        result.put("success", success);
+        result.put("message", success ? "处理成功" : "处理失败");
         return result;
     }
 }

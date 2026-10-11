@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>提交订单</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:href="@{/api/customer/store/page}">店铺</a>
+            <a th:href="@{/api/customer/cart/page}">购物车</a>
+            <a class="active" th:href="@{/api/customer/order/submit/page}">提交订单</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>提交订单</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">customer</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">订单信息</div>
+                <div class="form-group">
+                    <label>配送地址</label>
+                    <input class="form-control" id="address">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input class="form-control" id="note">
+                </div>
+                <button class="btn btn-primary" onclick="submit()">提交订单</button>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    const userId = /*[[${session.loginUser.id}]]*/ 0;
+
+    async function submit() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (cart.length === 0) {
+            toast('购物车为空');
+            return;
+        }
+        const ticket = {
+            address: document.getElementById('address').value,
+            note: document.getElementById('note').value,
+            storeId: cart[0].storeId,
+            status: '待接单',
+            publishDate: new Date().toISOString(),
+            userId: userId
+        };
+        const res = await request('/api/customer/ticket/add', {
+            method: 'POST',
+            body: JSON.stringify(ticket)
+        });
+        toast(res.message);
+        if (res.success) {
+            localStorage.removeItem('cart');
+            location.href = '/api/customer/ticket/page';
+        }
+    }
+</script>
+</body>
+</html>

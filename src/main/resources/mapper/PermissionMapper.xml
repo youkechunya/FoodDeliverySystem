@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.PermissionMapper">
+    <resultMap id="permissionMap" type="com.javaee.fooddeliverysystem.entity.Permission">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="url" property="url"/>
+        <result column="roleId" property="roleId"/>
+    </resultMap>
+    <select id="selectAll" resultMap="permissionMap">
+        select id,name,url,roleId from permission
+    </select>
+    <select id="selectByRoleId" resultMap="permissionMap">
+        select id,name,url,roleId from permission where roleId=#{roleId}
+    </select>
+    <select id="selectById" resultMap="permissionMap">
+        select id,name,url,roleId from permission where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into permission(name,url,roleId) values(#{name},#{url},#{roleId})
+    </insert>
+    <update id="update">
+        update permission set name=#{name},url=#{url},roleId=#{roleId} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from permission where id=#{id}
+    </delete>
+</mapper>

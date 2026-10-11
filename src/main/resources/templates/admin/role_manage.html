@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>角色管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:href="@{/api/admin/account/page}">用户管理</a>
+            <a class="active" th:href="@{/api/admin/role/page}">角色管理</a>
+            <a th:href="@{/api/admin/permission/page}">权限管理</a>
+            <a th:href="@{/api/admin/store/page}">店铺管理</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>角色管理</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">admin</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">
+                    <span>角色列表</span>
+                    <button class="btn btn-primary btn-sm" onclick="openAdd()">新增角色</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>角色名</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div class="modal-mask" id="modal">
+    <div class="modal">
+        <h5 id="modalTitle">新增角色</h5>
+        <input type="hidden" id="f_id">
+        <div class="form-group"><label>角色名</label><input class="form-control" id="f_roleName"></div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal')">取消</button>
+            <button class="btn btn-primary" onclick="save()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    let pageNum = 1;
+    const pageSize = 5;
+
+    async function load() {
+        const data = await request(`/api/admin/role/list?pageNum=${pageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        data.list.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.roleName}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm" onclick="openEdit(${r.id})">编辑</button>
+                    <button class="btn btn-danger btn-sm" onclick="del(${r.id})">删除</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
+            pageNum = p;
+            load();
+        });
+    }
+
+    function openAdd() {
+        document.getElementById('modalTitle').textContent = '新增角色';
+        document.getElementById('f_id').value = '';
+        document.getElementById('f_roleName').value = '';
+        openModal('modal');
+    }
+
+    async function openEdit(id) {
+        const r = await request(`/api/admin/role/${id}`);
+        document.getElementById('modalTitle').textContent = '编辑角色';
+        document.getElementById('f_id').value = r.id;
+        document.getElementById('f_roleName').value = r.roleName;
+        openModal('modal');
+    }
+
+    async function save() {
+        const id = document.getElementById('f_id').value;
+        const body = {
+            id: id ? parseInt(id) : 0,
+            roleName: document.getElementById('f_roleName').value
+        };
+        const url = id ? '/api/admin/role/update' : '/api/admin/role/add';
+        const method = id ? 'PUT' : 'POST';
+        const res = await request(url, { method, body: JSON.stringify(body) });
+        toast(res.message);
+        if (res.success) {
+            closeModal('modal');
+            load();
+        }
+    }
+
+    async function del(id) {
+        if (!confirm('确定删除？')) return;
+        const res = await request(`/api/admin/role/delete/${id}`, { method: 'DELETE' });
+        toast(res.message);
+        load();
+    }
+
+    load();
+</script>
+</body>
+</html>

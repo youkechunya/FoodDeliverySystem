@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.ComplaintMapper">
+    <resultMap id="complaintMap" type="com.javaee.fooddeliverysystem.entity.Complaint">
+        <id column="id" property="id"/>
+        <result column="userId" property="userId"/>
+        <result column="storeId" property="storeId"/>
+        <result column="ticketId" property="ticketId"/>
+        <result column="content" property="content"/>
+        <result column="status" property="status"/>
+        <result column="reply" property="reply"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+    <select id="selectAll" resultMap="complaintMap">
+        select * from complaint
+    </select>
+    <select id="selectByStoreId" resultMap="complaintMap">
+        select * from complaint where storeId=#{storeId}
+    </select>
+    <select id="selectByUserId" resultMap="complaintMap">
+        select * from complaint where userId=#{userId}
+    </select>
+    <select id="selectById" resultMap="complaintMap">
+        select * from complaint where id=#{id}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into complaint(userId,storeId,ticketId,content,status,reply,createTime)
+        values(#{userId},#{storeId},#{ticketId},#{content},#{status},#{reply},#{createTime})
+    </insert>
+    <update id="update">
+        update complaint set status=#{status},reply=#{reply} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from complaint where id=#{id}
+    </delete>
+</mapper>

@@ -90,6 +90,35 @@ create table store_item(
     foreign key (itemId) references item(id)
 );
 
+create table permission(
+id int primary key auto_increment,
+name varchar(50) not null comment '权限名称',
+url varchar(100) not null comment '权限路径',
+roleId int not null comment '所属角色',
+foreign key (roleId) references role(id)
+);
+
+create table complaint(
+id int primary key auto_increment,
+userId int not null comment '投诉人',
+storeId int not null comment '被投诉店铺',
+ticketId int comment '关联订单',
+content varchar(500) not null comment '投诉内容',
+status varchar(20) default '待处理' comment '状态（待处理，已处理，已仲裁）',
+reply varchar(500) comment '回复/仲裁结果',
+createTime datetime default current_timestamp comment '创建时间',
+foreign key (userId) references account(id),
+foreign key (storeId) references store(id)
+);
+
+create table menu(
+id int primary key auto_increment,
+name varchar(50) not null comment '菜单名称',
+url varchar(100) not null comment '菜单路径',
+roleId int not null comment '所属角色',
+foreign key (roleId) references role(id)
+);
+
 insert into account (id, account, password, status) values
 (1, 'reimu', 'reimu123', '正常'),
 (2, 'marisa', 'marisa456', '正常'),

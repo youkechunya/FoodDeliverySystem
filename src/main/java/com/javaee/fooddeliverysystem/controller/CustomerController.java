@@ -2,23 +2,17 @@ package com.javaee.fooddeliverysystem.controller;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.javaee.fooddeliverysystem.entity.Item;
-import com.javaee.fooddeliverysystem.entity.Review;
-import com.javaee.fooddeliverysystem.entity.Store;
-import com.javaee.fooddeliverysystem.entity.Ticket;
-import com.javaee.fooddeliverysystem.service.ItemService;
-import com.javaee.fooddeliverysystem.service.ReviewService;
-import com.javaee.fooddeliverysystem.service.StoreService;
-import com.javaee.fooddeliverysystem.service.TicketService;
+import com.javaee.fooddeliverysystem.entity.*;
+import com.javaee.fooddeliverysystem.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// 顾客端
 @Controller
 @RequestMapping("/api/customer")
 public class CustomerController {
@@ -35,19 +29,32 @@ public class CustomerController {
     @Autowired
     private ReviewService reviewService;
 
+    @Autowired
+    private ComplaintService complaintService;
+
     @GetMapping("/store/page")
     public String storePage() {
-        return "customer/store_list";
+        return "customer/index";
     }
 
     @GetMapping("/ticket/page")
     public String ticketPage() {
-        return "customer/ticket_list";
+        return "customer/order_list";
     }
 
     @GetMapping("/review/page")
     public String reviewPage() {
-        return "customer/review_list";
+        return "customer/review";
+    }
+
+    @GetMapping("/cart/page")
+    public String cartPage() {
+        return "customer/cart";
+    }
+
+    @GetMapping("/order/submit/page")
+    public String orderSubmitPage() {
+        return "customer/order_submit";
     }
 
     @GetMapping("/store/list")
@@ -121,6 +128,12 @@ public class CustomerController {
         return ticketService.selectById(id);
     }
 
+    @GetMapping("/ticket/list/{userId}")
+    @ResponseBody
+    public List<Ticket> listTicketsByUser(@PathVariable Integer userId) {
+        return ticketService.selectByUserId(userId);
+    }
+
     @PostMapping("/review/add")
     @ResponseBody
     public Map<String, Object> addReview(@RequestBody Review review) {
@@ -140,5 +153,22 @@ public class CustomerController {
     @ResponseBody
     public List<Review> listReviewsByStore(@PathVariable Integer storeId) {
         return reviewService.selectByStoreId(storeId);
+    }
+
+    @PostMapping("/complaint/add")
+    @ResponseBody
+    public Map<String, Object> addComplaint(@RequestBody Complaint complaint) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            complaint.setStatus("待处理");
+            complaint.setCreateTime(new Date());
+            boolean success = complaintService.insert(complaint);
+            result.put("success", success);
+            result.put("message", success ? "投诉已提交" : "提交失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "提交失败：" + e.getMessage());
+        }
+        return result;
     }
 }

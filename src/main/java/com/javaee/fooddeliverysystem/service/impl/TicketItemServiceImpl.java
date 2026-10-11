@@ -1,31 +1,56 @@
 package com.javaee.fooddeliverysystem.service.impl;
 
-import com.javaee.fooddeliverysystem.entity.TicketItem;
-import com.javaee.fooddeliverysystem.mapper.TicketItemMapper;
-import com.javaee.fooddeliverysystem.service.TicketItemService;
+import com.javaee.fooddeliverysystem.entity.Ticket;
+import com.javaee.fooddeliverysystem.mapper.TicketMapper;
+import com.javaee.fooddeliverysystem.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class TicketItemServiceImpl implements TicketItemService {
+public class TicketServiceImpl implements TicketService {
 
     @Autowired
-    private TicketItemMapper ticketItemMapper;
+    private TicketMapper ticketMapper;
 
     @Override
-    public List<TicketItem> selectByTicketId(Integer ticketId) {
-        return ticketItemMapper.selectByTicketId(ticketId);
+    public List<Ticket> selectAll() {
+        return ticketMapper.selectAll();
     }
 
     @Override
-    public boolean insert(TicketItem ticketItem) {
-        return ticketItemMapper.insert(ticketItem) > 0;
+    public Ticket selectById(Integer id) {
+        return ticketMapper.selectById(id);
+    }
+
+    @Override
+    public List<Ticket> selectByStoreId(Integer storeId) {
+        return ticketMapper.selectByStoreId(storeId);
+    }
+
+    @Override
+    public List<Ticket> selectByDeliveryGuyId(Integer deliveryGuyId) {
+        return ticketMapper.selectByDeliveryGuyId(deliveryGuyId);
+    }
+
+    @Override
+    public List<Ticket> selectByUserId(Integer userId) {
+        return ticketMapper.selectByUserId(userId);
+    }
+
+    @Override
+    public boolean insert(Ticket ticket) {
+        return ticketMapper.insert(ticket) > 0;
+    }
+
+    @Override
+    public boolean update(Ticket ticket) {
+        return ticketMapper.update(ticket) > 0;
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return ticketItemMapper.deleteById(id) > 0;
+        return ticketMapper.deleteById(id) > 0;
     }
 }

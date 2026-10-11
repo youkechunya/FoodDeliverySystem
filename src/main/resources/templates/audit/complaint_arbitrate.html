@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>评价仲裁</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:href="@{/api/audit/store/page}">店铺审核</a>
+            <a class="active" th:href="@{/api/audit/review/page}">评价仲裁</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>评价仲裁</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">audit</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">评价列表</div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>用户ID</th><th>店铺ID</th><th>内容</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">投诉仲裁</div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>用户ID</th><th>店铺ID</th><th>内容</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="complaintTbody"></tbody>
+                </table>
+                <div class="pagination" id="complaintPagination"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    let pageNum = 1;
+    const pageSize = 5;
+    let cPageNum = 1;
+
+    async function loadReviews() {
+        const data = await request(`/api/audit/review/list?pageNum=${pageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        data.list.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.userId}</td>
+                <td>${r.storeId}</td>
+                <td>${r.content}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="delReview(${r.id})">删除</button></td>`;
+            tbody.appendChild(tr);
+        });
+        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
+            pageNum = p;
+            loadReviews();
+        });
+    }
+
+    async function delReview(id) {
+        if (!confirm('确定删除该评价？')) return;
+        const res = await request(`/api/audit/review/delete/${id}`, { method: 'DELETE' });
+        toast(res.message);
+        loadReviews();
+    }
+
+    async function loadComplaints() {
+        const data = await request(`/api/audit/complaint/list?pageNum=${cPageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('complaintTbody');
+        tbody.innerHTML = '';
+        data.list.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${c.id}</td>
+                <td>${c.userId}</td>
+                <td>${c.storeId}</td>
+                <td>${c.content}</td>
+                <td>${c.status}</td>
+                <td><button class="btn btn-primary btn-sm" onclick="arbitrate(${c.id})">仲裁</button></td>`;
+            tbody.appendChild(tr);
+        });
+        renderPagination(document.getElementById('complaintPagination'), data.pageNum, data.pages, p => {
+            cPageNum = p;
+            loadComplaints();
+        });
+    }
+
+    async function arbitrate(id) {
+        const text = prompt('请输入仲裁结果：');
+        if (!text) return;
+        const res = await request(`/api/audit/complaint/arbitrate/${id}?resultText=${encodeURIComponent(text)}`, { method: 'PUT' });
+        toast(res.message);
+        loadComplaints();
+    }
+
+    loadReviews();
+    loadComplaints();
+</script>
+</body>
+</html>

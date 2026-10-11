@@ -3,9 +3,11 @@ package com.javaee.fooddeliverysystem.controller;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.javaee.fooddeliverysystem.entity.Account;
+import com.javaee.fooddeliverysystem.entity.Permission;
 import com.javaee.fooddeliverysystem.entity.Role;
 import com.javaee.fooddeliverysystem.entity.Store;
 import com.javaee.fooddeliverysystem.service.AccountService;
+import com.javaee.fooddeliverysystem.service.PermissionService;
 import com.javaee.fooddeliverysystem.service.RoleService;
 import com.javaee.fooddeliverysystem.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// 系统管理员
 @Controller
 @RequestMapping("/api/admin")
 public class AdminController {
@@ -30,14 +31,22 @@ public class AdminController {
     @Autowired
     private StoreService storeService;
 
+    @Autowired
+    private PermissionService permissionService;
+
     @GetMapping("/account/page")
     public String accountPage() {
-        return "admin/account_list";
+        return "admin/user_manage";
     }
 
     @GetMapping("/role/page")
     public String rolePage() {
-        return "admin/role_list";
+        return "admin/role_manage";
+    }
+
+    @GetMapping("/permission/page")
+    public String permissionPage() {
+        return "admin/permission_manage";
     }
 
     @GetMapping("/store/page")
@@ -165,6 +174,68 @@ public class AdminController {
     public Map<String, Object> deleteRole(@PathVariable Integer id) {
         Map<String, Object> result = new HashMap<>();
         boolean success = roleService.deleteById(id);
+        result.put("success", success);
+        result.put("message", success ? "删除成功" : "删除失败");
+        return result;
+    }
+
+    @GetMapping("/permission/list")
+    @ResponseBody
+    public Map<String, Object> listPermissions(@RequestParam(defaultValue = "1") int pageNum,
+                                               @RequestParam(defaultValue = "5") int pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<Permission> list = permissionService.selectAll();
+        PageInfo<Permission> pageInfo = new PageInfo<>(list);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", pageInfo.getList());
+        result.put("total", pageInfo.getTotal());
+        result.put("pageNum", pageInfo.getPageNum());
+        result.put("pages", pageInfo.getPages());
+        return result;
+    }
+
+    @GetMapping("/permission/{id}")
+    @ResponseBody
+    public Permission getPermission(@PathVariable Integer id) {
+        return permissionService.selectById(id);
+    }
+
+    @PostMapping("/permission/add")
+    @ResponseBody
+    public Map<String, Object> addPermission(@RequestBody Permission permission) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean success = permissionService.insert(permission);
+            result.put("success", success);
+            result.put("message", success ? "添加成功" : "添加失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "添加失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    @PutMapping("/permission/update")
+    @ResponseBody
+    public Map<String, Object> updatePermission(@RequestBody Permission permission) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean success = permissionService.update(permission);
+            result.put("success", success);
+            result.put("message", success ? "修改成功" : "修改失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "修改失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    @DeleteMapping("/permission/delete/{id}")
+    @ResponseBody
+    public Map<String, Object> deletePermission(@PathVariable Integer id) {
+        Map<String, Object> result = new HashMap<>();
+        boolean success = permissionService.deleteById(id);
         result.put("success", success);
         result.put("message", success ? "删除成功" : "删除失败");
         return result;

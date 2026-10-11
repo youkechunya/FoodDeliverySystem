@@ -25,6 +25,11 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    public List<Store> selectByStatus(String status) {
+        return storeMapper.selectByStatus(status);
+    }
+
+    @Override
     public boolean insert(Store store) {
         return storeMapper.insert(store) > 0;
     }

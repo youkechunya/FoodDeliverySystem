@@ -35,6 +35,11 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    public List<Ticket> selectByUserId(Integer userId) {
+        return ticketMapper.selectByUserId(userId);
+    }
+
+    @Override
     public boolean insert(Ticket ticket) {
         return ticketMapper.insert(ticket) > 0;
     }

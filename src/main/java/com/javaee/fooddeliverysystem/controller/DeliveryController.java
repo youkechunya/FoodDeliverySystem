@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// 配送员端
 @Controller
 @RequestMapping("/api/delivery")
 public class DeliveryController {
@@ -22,7 +21,12 @@ public class DeliveryController {
 
     @GetMapping("/ticket/page")
     public String ticketPage() {
-        return "delivery/ticket_list";
+        return "delivery/delivery_task";
+    }
+
+    @GetMapping("/ticket/mine/page")
+    public String minePage() {
+        return "delivery/delivery_detail";
     }
 
     @GetMapping("/ticket/available")

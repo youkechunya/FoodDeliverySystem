@@ -10,10 +10,12 @@ public class Ticket {
     private String status;
     private Integer deliveryGuyId;
     private String note;
+    private Integer userId;
 
     public Ticket() {}
 
-    public Ticket(int id, Date publishDate, String address, Integer storeId, String status, Integer deliveryGuyId, String note) {
+    public Ticket(int id, Date publishDate, String address, Integer storeId, String status,
+                  Integer deliveryGuyId, String note, Integer userId) {
         this.id = id;
         this.publishDate = publishDate;
         this.address = address;
@@ -21,6 +23,7 @@ public class Ticket {
         this.status = status;
         this.deliveryGuyId = deliveryGuyId;
         this.note = note;
+        this.userId = userId;
     }
 
     public int getId() { return id; }
@@ -37,4 +40,6 @@ public class Ticket {
     public void setDeliveryGuyId(Integer deliveryGuyId) { this.deliveryGuyId = deliveryGuyId; }
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
 }

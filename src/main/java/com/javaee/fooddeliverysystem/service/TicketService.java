@@ -10,6 +10,7 @@ public interface TicketService {
     Ticket selectById(@Param("id") Integer id);
     List<Ticket> selectByStoreId(@Param("storeId") Integer storeId);
     List<Ticket> selectByDeliveryGuyId(@Param("deliveryGuyId") Integer deliveryGuyId);
+    List<Ticket> selectByUserId(@Param("userId") Integer userId);
     boolean insert(Ticket ticket);
     boolean update(Ticket ticket);
     boolean deleteById(@Param("id") Integer id);

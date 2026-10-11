@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a th:href="@{/api/customer/store/page}">店铺</a>
+            <a class="active" th:href="@{/api/customer/cart/page}">购物车</a>
+            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>购物车</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">customer</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">
+                    <span>已选商品</span>
+                    <button class="btn btn-primary btn-sm" onclick="submitOrder()">去结算</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr><th>商品</th><th>单价</th><th>数量</th><th>小计</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '[]');
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    function render() {
+        const cart = getCart();
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        cart.forEach((c, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${c.name}</td>
+                <td>${c.price}</td>
+                <td>${c.quantity}</td>
+                <td>${(c.price * c.quantity).toFixed(2)}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeItem(${i})">移除</button></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function removeItem(i) {
+        const cart = getCart();
+        cart.splice(i, 1);
+        saveCart(cart);
+        render();
+    }
+
+    function submitOrder() {
+        if (getCart().length === 0) {
+            toast('购物车为空');
+            return;
+        }
+        location.href = '/api/customer/order/submit/page';
+    }
+
+    render();
+</script>
+</body>
+</html>

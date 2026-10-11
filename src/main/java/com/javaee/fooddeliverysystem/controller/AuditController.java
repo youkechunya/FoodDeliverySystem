@@ -2,8 +2,10 @@ package com.javaee.fooddeliverysystem.controller;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.javaee.fooddeliverysystem.entity.Complaint;
 import com.javaee.fooddeliverysystem.entity.Review;
 import com.javaee.fooddeliverysystem.entity.Store;
+import com.javaee.fooddeliverysystem.service.ComplaintService;
 import com.javaee.fooddeliverysystem.service.ReviewService;
 import com.javaee.fooddeliverysystem.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/// 审核员端
 @Controller
 @RequestMapping("/api/audit")
 public class AuditController {
@@ -25,14 +26,17 @@ public class AuditController {
     @Autowired
     private ReviewService reviewService;
 
+    @Autowired
+    private ComplaintService complaintService;
+
     @GetMapping("/store/page")
     public String storePage() {
-        return "audit/store_audit";
+        return "audit/goods_audit";
     }
 
     @GetMapping("/review/page")
     public String reviewPage() {
-        return "audit/review_audit";
+        return "audit/complaint_arbitrate";
     }
 
     @GetMapping("/store/list")
@@ -61,6 +65,7 @@ public class AuditController {
             result.put("message", "店铺不存在");
             return result;
         }
+        store.setStatus("通过");
         boolean success = storeService.update(store);
         result.put("success", success);
         result.put("message", success ? "审核通过" : "审核失败");
@@ -77,6 +82,7 @@ public class AuditController {
             result.put("message", "店铺不存在");
             return result;
         }
+        store.setStatus("驳回");
         boolean success = storeService.update(store);
         result.put("success", success);
         result.put("message", success ? "已驳回" : "操作失败");
@@ -106,6 +112,41 @@ public class AuditController {
         boolean success = reviewService.deleteById(id);
         result.put("success", success);
         result.put("message", success ? "删除成功" : "删除失败");
+        return result;
+    }
+
+    @GetMapping("/complaint/list")
+    @ResponseBody
+    public Map<String, Object> listComplaints(@RequestParam(defaultValue = "1") int pageNum,
+                                              @RequestParam(defaultValue = "5") int pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<Complaint> list = complaintService.selectAll();
+        PageInfo<Complaint> pageInfo = new PageInfo<>(list);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", pageInfo.getList());
+        result.put("total", pageInfo.getTotal());
+        result.put("pageNum", pageInfo.getPageNum());
+        result.put("pages", pageInfo.getPages());
+        return result;
+    }
+
+    @PutMapping("/complaint/arbitrate/{id}")
+    @ResponseBody
+    public Map<String, Object> arbitrate(@PathVariable Integer id,
+                                         @RequestParam String resultText) {
+        Map<String, Object> result = new HashMap<>();
+        Complaint complaint = complaintService.selectById(id);
+        if (complaint == null) {
+            result.put("success", false);
+            result.put("message", "投诉不存在");
+            return result;
+        }
+        complaint.setReply(resultText);
+        complaint.setStatus("已仲裁");
+        boolean success = complaintService.update(complaint);
+        result.put("success", success);
+        result.put("message", success ? "仲裁完成" : "仲裁失败");
         return result;
     }
 }

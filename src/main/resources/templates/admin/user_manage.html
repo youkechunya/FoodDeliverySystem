@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a class="active" th:href="@{/api/admin/account/page}">用户管理</a>
+            <a th:href="@{/api/admin/role/page}">角色管理</a>
+            <a th:href="@{/api/admin/permission/page}">权限管理</a>
+            <a th:href="@{/api/admin/store/page}">店铺管理</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>用户管理</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">admin</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">
+                    <span>账号列表</span>
+                    <button class="btn btn-primary btn-sm" onclick="openAdd()">新增账号</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>账号</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div class="modal-mask" id="modal">
+    <div class="modal">
+        <h5 id="modalTitle">新增账号</h5>
+        <input type="hidden" id="f_id">
+        <div class="form-group"><label>账号</label><input class="form-control" id="f_account"></div>
+        <div class="form-group"><label>密码</label><input class="form-control" id="f_password" type="password"></div>
+        <div class="form-group">
+            <label>状态</label>
+            <select class="form-control" id="f_status">
+                <option value="正常">正常</option>
+                <option value="封禁">封禁</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('modal')">取消</button>
+            <button class="btn btn-primary" onclick="save()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    let pageNum = 1;
+    const pageSize = 5;
+
+    async function load() {
+        const data = await request(`/api/admin/account/list?pageNum=${pageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        data.list.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${a.id}</td>
+                <td>${a.account}</td>
+                <td>${a.status}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm" onclick="openEdit(${a.id})">编辑</button>
+                    <button class="btn btn-danger btn-sm" onclick="del(${a.id})">删除</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
+            pageNum = p;
+            load();
+        });
+    }
+
+    function openAdd() {
+        document.getElementById('modalTitle').textContent = '新增账号';
+        document.getElementById('f_id').value = '';
+        document.getElementById('f_account').value = '';
+        document.getElementById('f_password').value = '';
+        document.getElementById('f_status').value = '正常';
+        openModal('modal');
+    }
+
+    async function openEdit(id) {
+        const a = await request(`/api/admin/account/${id}`);
+        document.getElementById('modalTitle').textContent = '编辑账号';
+        document.getElementById('f_id').value = a.id;
+        document.getElementById('f_account').value = a.account;
+        document.getElementById('f_password').value = a.password;
+        document.getElementById('f_status').value = a.status;
+        openModal('modal');
+    }
+
+    async function save() {
+        const id = document.getElementById('f_id').value;
+        const body = {
+            id: id ? parseInt(id) : 0,
+            account: document.getElementById('f_account').value,
+            password: document.getElementById('f_password').value,
+            status: document.getElementById('f_status').value
+        };
+        const url = id ? '/api/admin/account/update' : '/api/admin/account/add';
+        const method = id ? 'PUT' : 'POST';
+        const res = await request(url, { method, body: JSON.stringify(body) });
+        toast(res.message);
+        if (res.success) {
+            closeModal('modal');
+            load();
+        }
+    }
+
+    async function del(id) {
+        if (!confirm('确定删除？')) return;
+        const res = await request(`/api/admin/account/delete/${id}`, { method: 'DELETE' });
+        toast(res.message);
+        load();
+    }
+
+    load();
+</script>
+</body>
+</html>

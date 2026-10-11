@@ -8,6 +8,7 @@ import java.util.List;
 public interface StoreService {
     List<Store> selectAll();
     Store selectById(@Param("id") Integer id);
+    List<Store> selectByStatus(@Param("status") String status);
     boolean insert(Store store);
     boolean update(Store store);
     boolean deleteById(@Param("id") Integer id);

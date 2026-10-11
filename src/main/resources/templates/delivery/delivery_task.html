@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>可接订单</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">快餐配送</div>
+        <nav>
+            <a class="active" th:href="@{/api/delivery/ticket/page}">可接订单</a>
+            <a th:href="@{/api/delivery/ticket/mine/page}">我的配送</a>
+        </nav>
+        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+    </aside>
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>可接订单</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">delivery</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">待接单</div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>地址</th><th>店铺ID</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    let pageNum = 1;
+    const pageSize = 5;
+    const deliveryGuyId = /*[[${session.loginUser.id}]]*/ 0;
+
+    async function load() {
+        const data = await request(`/api/delivery/ticket/available?pageNum=${pageNum}&pageSize=${pageSize}`);
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        data.list.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${t.id}</td>
+                <td>${t.address}</td>
+                <td>${t.storeId}</td>
+                <td>${t.status}</td>
+                <td><button class="btn btn-primary btn-sm" onclick="accept(${t.id})">接单</button></td>`;
+            tbody.appendChild(tr);
+        });
+        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
+            pageNum = p;
+            load();
+        });
+    }
+
+    async function accept(id) {
+        const res = await request(`/api/delivery/ticket/accept/${id}?deliveryGuyId=${deliveryGuyId}`, { method: 'PUT' });
+        toast(res.message);
+        load();
+    }
+
+    load();
+</script>
+</body>
+</html>
