@@ -12,7 +12,7 @@
     <main class="content-area">
         <header class="top-bar">
             <h4 id="pageTitle">店铺评价</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">customer</span>
+            <span class="user-info" th:text="${session.loginUser.account} + ' · ' + ${session.loginRole.roleName}">customer</span>
         </header>
         <section class="content-body">
 

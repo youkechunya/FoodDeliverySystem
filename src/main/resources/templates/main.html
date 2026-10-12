@@ -19,7 +19,7 @@
     <main class="content-area">
         <header class="top-bar">
             <h4>欢迎使用快餐订制与配送系统</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">用户</span>
+            <span class="user-info" th:text="${session.loginUser.account} + ' · ' + ${session.loginRole.roleName}">用户</span>
         </header>
         <section class="content-body">
             <div class="card">

@@ -1,67 +1,154 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>登录 - 快餐订制与配送系统</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 外卖配送系统</title>
+    <link rel="stylesheet" href="/css/style.css">
     <style>
         body {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
             min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
         .login-box {
             width: 380px;
             background: #fff;
             border-radius: 16px;
-            padding: 36px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+            padding: 36px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
         }
         .login-box h2 {
             text-align: center;
-            margin-bottom: 24px;
+            font-size: 22px;
+            margin-bottom: 6px;
             color: #0f172a;
         }
-        .login-box .btn {
-            width: 100%;
-            margin-top: 8px;
+        .login-box .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 26px;
         }
-        .msg { text-align: center; font-size: 13px; margin-top: 10px; }
-        .msg.error { color: #ef4444; }
-        .msg.success { color: #22c55e; }
+        .login-box .btn-primary {
+            width: 100%;
+            padding: 11px;
+            font-size: 15px;
+            margin-top: 6px;
+        }
+        .login-box .error {
+            color: #ef4444;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .login-box .link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .login-box .link a {
+            color: #0099cc;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 <div class="login-box">
-    <h2>快餐订制与配送系统</h2>
-    <form th:action="@{/auth/login}" method="post">
-        <div class="form-group">
-            <label>账号</label>
-            <input class="form-control" type="text" name="account" required>
-        </div>
-        <div class="form-group">
-            <label>密码</label>
-            <input class="form-control" type="password" name="password" required>
-        </div>
-        <div class="form-group">
-            <label>角色</label>
-            <select class="form-control" name="roleId" required>
-                <option th:each="r : ${roles}"
-                        th:value="${r.id}"
-                        th:text="${r.roleName}">角色</option>
-            </select>
-        </div>
-        <button class="btn btn-primary" type="submit">登录</button>
-    </form>
+    <h2>外卖配送系统</h2>
+    <p class="subtitle">请登录您的账号</p>
 
-    <p class="msg error" th:if="${error}" th:text="${error}"></p>
-    <p class="msg success" th:if="${success}" th:text="${success}"></p>
+    <div id="errorBox" class="error" style="display:none;"></div>
 
-    <p style="text-align:center;margin-top:16px;font-size:13px;">
-        没有账号？<a th:href="@{/auth/register}" style="color:#0099cc;">去注册</a>
-    </p>
+    <div class="form-group">
+        <label>账号</label>
+        <label for="account"></label><input type="text" id="account" class="form-control" placeholder="请输入账号">
+    </div>
+
+    <div class="form-group">
+        <label>密码</label>
+        <label for="password"></label><input type="password" id="password" class="form-control" placeholder="请输入密码">
+    </div>
+
+    <div class="form-group">
+        <label>角色</label>
+        <label for="roleId"></label><select id="roleId" class="form-control">
+        </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="doLogin()">登 录</button>
+
+    <div class="link">
+        还没有账号？<a href="/auth/register">立即注册</a>
+    </div>
 </div>
+
+<script>
+    async function loadRoles() {
+        const sel = document.getElementById('roleId');
+        try {
+            const res = await fetch('/auth/roles/list');
+            const roles = await res.json();
+            roles.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = r.roleName;
+                sel.appendChild(opt);
+            });
+        } catch (e) {
+            sel.innerHTML = '<option value="">角色加载失败</option>';
+        }
+    }
+
+    async function doLogin() {
+        const account = document.getElementById('account').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const roleSelect = document.getElementById('roleId');
+        const roleId = roleSelect.value;
+        const errorBox = document.getElementById('errorBox');
+
+        errorBox.style.display = 'none';
+
+        if (!account || !password || !roleId) {
+            errorBox.textContent = '请填写完整信息';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ account, password, roleId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('roleId', data.roleId);
+                localStorage.setItem('roleName', data.roleName || '');
+                localStorage.setItem('account', account);
+
+                window.location.href = '/main';
+            } else {
+                errorBox.textContent = data.message || '登录失败';
+                errorBox.style.display = 'block';
+            }
+        } catch (e) {
+            errorBox.textContent = '网络异常，请稍后重试';
+            errorBox.style.display = 'block';
+        }
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    loadRoles();
+</script>
 </body>
 </html>

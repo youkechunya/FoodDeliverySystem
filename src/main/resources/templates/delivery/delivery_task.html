@@ -1,135 +1,95 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>可接订单</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配送任务 - 外卖配送系统</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="app-container">
-    <div th:replace="~{fragments/delivery-sidebar :: sidebar('available')}"></div>
+    <aside class="sidebar">
+        <div class="logo">外卖配送</div>
+        <nav id="sideNav">
+            <a href="/api/delivery/ticket/page" class="active">配送任务</a>
+            <a href="/api/delivery/ticket/mine/page">我的配送</a>
+        </nav>
+        <a href="javascript:void(0)" class="logout" onclick="doLogout()">退出登录</a>
+    </aside>
 
-    <main class="content-area">
-        <header class="top-bar">
-            <h4>可接订单</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">delivery</span>
-        </header>
-        <section class="content-body">
+    <div class="content-area">
+        <div class="top-bar">
+            <h4>可接配送任务</h4>
+            <span class="user-info" id="userInfo">配送员</span>
+        </div>
+
+        <div class="content-body">
             <div class="card">
-                <div class="card-title">待接单</div>
+                <div class="card-title">
+                    <span>待接单列表</span>
+                    <button class="btn btn-outline btn-sm" onclick="loadAvailable(1)">刷新</button>
+                </div>
                 <table>
                     <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>订单号</th>
                         <th>店铺</th>
-                        <th>地址</th>
+                        <th>配送地址</th>
                         <th>订单金额</th>
-                        <th>配送金额</th>
                         <th>操作</th>
                     </tr>
                     </thead>
-                    <tbody id="tbody"></tbody>
+                    <tbody id="taskBody">
+                    <tr><td colspan="5" style="text-align:center;color:#94a3b8;">加载中...</td></tr>
+                    </tbody>
                 </table>
                 <div class="pagination" id="pagination"></div>
             </div>
-            <div class="modal-mask" id="itemModal">
-                <div class="modal" style="width: 520px;">
-                    <h5>订单明细</h5>
-                    <table>
-                        <thead>
-                        <tr><th>商品</th><th>单价</th><th>数量</th><th>小计</th></tr>
-                        </thead>
-                        <tbody id="itemBody"></tbody>
-                        <tfoot>
-                        <tr><th colspan="3" style="text-align:right;">合计</th><th id="itemTotal"></th></tr>
-                        </tfoot>
-                    </table>
-                    <div class="modal-footer">
-                        <button class="btn btn-outline" onclick="closeModal('itemModal')">关闭</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+        </div>
+    </div>
 </div>
 
-<script th:src="@{/js/common.js}"></script>
+<script src="/js/common.js"></script>
 <script>
-    let pageNum = 1;
-    const pageSize = 5;
-
-    async function load() {
-        const data = await request(`/api/delivery/ticket/available?pageNum=${pageNum}&pageSize=${pageSize}`);
-        const tbody = document.getElementById('tbody');
-        tbody.innerHTML = '';
-
-        // 1. 没有数据时显示提示
-        if (!data.list || data.list.length === 0) {
-            tbody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">
-                    暂无待接订单
-                </td>
-            </tr>`;
-            document.getElementById('pagination').innerHTML = '';
+    function renderTable(list) {
+        const tbody = document.getElementById('taskBody');
+        if (!list || list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">暂无可接订单</td></tr>';
             return;
         }
+        tbody.innerHTML = list.map(t => `
+        <tr>
+            <td>#${t.id}</td>
+            <td>${t.storeName || '-'}</td>
+            <td>${t.address || '-'}</td>
+            <td>￥${Number(t.totalAmount || 0).toFixed(2)}</td>
+            <td><button class="btn btn-primary btn-sm" onclick="accept(${t.id})">接单</button></td>
+        </tr>
+    `).join('');
+    }
 
-        // 2. 有数据才渲染
-        data.list.forEach(t => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-        <td>${t.id}</td>
-        <td>${t.storeName}</td>
-        <td>${t.address}</td>
-        <td>￥${t.totalAmount.toFixed(2)}</td>
-        <td>￥${t.deliveryAmount.toFixed(2)}</td>
-        <td>
-            <button class="btn btn-outline btn-sm" onclick="viewItems(${t.id})">明细</button>
-            <button class="btn btn-primary btn-sm" onclick="accept(${t.id})">接单</button>
-        </td>`;
-            tbody.appendChild(tr);
-        });
-
-        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
-            pageNum = p;
-            load();
-        });
+    async function loadAvailable(page) {
+        try {
+            const data = await request('/api/delivery/ticket/available?pageNum=' + page + '&pageSize=5');
+            renderTable(data.list);
+            renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, loadAvailable);
+        } catch (e) {
+            toast('加载失败：' + e.message);
+        }
     }
 
     async function accept(id) {
-        const res = await request(`/api/delivery/ticket/accept/${id}`, { method: 'PUT' });
-        toast(res.message);
-        await load();
-    }
-
-    load();
-
-    async function viewItems(ticketId) {
-        const items = await request(`/api/delivery/ticket/items/${ticketId}`);
-        const tbody = document.getElementById('itemBody');
-        tbody.innerHTML = '';
-        if (!items || items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">无明细</td></tr>';
-            document.getElementById('itemTotal').textContent = '';
-        } else {
-            let total = 0;
-            items.forEach(i => {
-                const name = i.itemName || ('商品#' + i.itemId);
-                const subtotal = (parseFloat(i.price) * i.quantity).toFixed(2);
-                total += parseFloat(subtotal);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                <td>${name}</td>
-                <td>${i.price}</td>
-                <td>${i.quantity}</td>
-                <td>${subtotal}</td>`;
-                tbody.appendChild(tr);
-            });
-            document.getElementById('itemTotal').textContent = '￥' + total.toFixed(2);
+        try {
+            const data = await request('/api/delivery/ticket/accept/' + id, { method: 'PUT' });
+            toast(data.message);
+            if (data.success) loadAvailable(1);
+        } catch (e) {
+            toast('接单失败：' + e.message);
         }
-        openModal('itemModal');
     }
+
+    initUserInfo();
+    loadAvailable(1);
 </script>
 </body>
 </html>

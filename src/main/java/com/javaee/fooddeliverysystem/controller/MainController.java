@@ -1,7 +1,6 @@
 package com.javaee.fooddeliverysystem.controller;
 
 import com.javaee.fooddeliverysystem.entity.Account;
-import com.javaee.fooddeliverysystem.entity.Menu;
 import com.javaee.fooddeliverysystem.entity.Role;
 import com.javaee.fooddeliverysystem.service.MenuService;
 import com.javaee.fooddeliverysystem.service.RoleService;
@@ -10,11 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class MainController {

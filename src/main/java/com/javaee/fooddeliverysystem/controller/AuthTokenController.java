@@ -8,6 +8,7 @@ import com.javaee.fooddeliverysystem.service.AccountService;
 import com.javaee.fooddeliverysystem.service.RoleService;
 import com.javaee.fooddeliverysystem.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,8 @@ public class AuthTokenController {
     @Autowired private TokenService tokenService;
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> body) {
+    public Map<String, Object> login(@RequestBody Map<String, String> body,
+                                     HttpSession session) {
         Map<String, Object> result = new HashMap<>();
         String account = body.get("account");
         String password = body.get("password");
@@ -61,16 +63,20 @@ public class AuthTokenController {
         String token = jwtUtil.generate(user.getId(), user.getAccount(), chosen.getId());
         tokenService.saveOnline(user.getId(), token);
 
+        session.setAttribute("loginUser", user);
+        session.setAttribute("loginRole", chosen);
+
         result.put("success", true);
         result.put("token", token);
         result.put("userId", user.getId());
         result.put("roleId", chosen.getId());
+        result.put("roleName", chosen.getRoleName());
         result.put("expireSeconds", jwtUtil.getExpireSeconds());
         return result;
     }
 
     @PostMapping("/logout")
-    public Map<String, Object> logout(HttpServletRequest request) {
+    public Map<String, Object> logout(HttpServletRequest request, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
@@ -81,6 +87,8 @@ public class AuthTokenController {
                 tokenService.removeOnline((Integer) claims.get("userId"));
             } catch (Exception ignored) {}
         }
+        session.removeAttribute("loginUser");
+        session.removeAttribute("loginRole");
         result.put("success", true);
         result.put("message", "已注销");
         return result;

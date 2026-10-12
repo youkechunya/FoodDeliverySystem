@@ -12,7 +12,7 @@
     <main class="content-area">
         <header class="top-bar">
             <h4>角色管理</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">admin</span>
+            <span class="user-info" th:text="${session.loginUser.account} + ' · ' + ${session.loginRole.roleName}">admin</span>
         </header>
         <section class="content-body">
             <div class="card">

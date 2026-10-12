@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 
-/// 登录注册
 @Controller
 @RequestMapping("/auth")
 public class LoginController {
@@ -38,7 +37,6 @@ public class LoginController {
         return "login";
     }
 
-
     @GetMapping("/register")
     public String toRegister() {
         return "register";
@@ -51,7 +49,6 @@ public class LoginController {
                         HttpSession session,
                         Model model) {
 
-        // 找账号
         Account user = null;
         for (Account a : accountService.selectAll()) {
             if (a.getAccount().equals(account)) {
@@ -66,7 +63,6 @@ public class LoginController {
             return "login";
         }
 
-        // 检查该账号是否绑定了所选角色
         List<Role> owned = roleService.selectRolesByUserId(user.getId());
         Role selected = null;
         for (Role r : owned) {
@@ -81,14 +77,12 @@ public class LoginController {
             return "login";
         }
 
-        // 状态检查
         if ("冻结".equals(user.getStatus())) {
             model.addAttribute("error", "该账号已被冻结！");
             model.addAttribute("roles", roleService.selectAll());
             return "login";
         }
 
-        // 写入 session
         session.setAttribute("loginUser", user);
         session.setAttribute("loginRole", selected);
         return "redirect:/main";
@@ -104,7 +98,6 @@ public class LoginController {
         user.setStatus("正常");
 
         if (accountService.insert(user)) {
-            // 找「顾客」角色 id
             Integer customerRoleId = null;
             for (Role r : roleService.selectAll()) {
                 if ("顾客".equals(r.getRoleName())) {
@@ -116,7 +109,6 @@ public class LoginController {
                 customerRoleId = 5;
             }
 
-            // 分配默认角色
             try {
                 userRoleMapper.insert(user.getId(), customerRoleId);
             } catch (Exception e) {
@@ -165,5 +157,11 @@ public class LoginController {
             }
         }
         return new ArrayList<>();
+    }
+
+    @GetMapping("/roles/list")
+    @ResponseBody
+    public List<Role> allRoles() {
+        return roleService.selectAll();
     }
 }

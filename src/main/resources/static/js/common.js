@@ -1,6 +1,10 @@
 async function request(url, options = {}) {
+    const token = localStorage.getItem('token');
     const config = {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
         ...options
     };
     const res = await fetch(url, config);
@@ -12,6 +16,26 @@ async function request(url, options = {}) {
         return res.json();
     }
     return res.text();
+}
+
+async function doLogout() {
+    try {
+        await request('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('roleId');
+    localStorage.removeItem('roleName');
+    localStorage.removeItem('account');
+    window.location.href = '/auth/login';
+}
+
+function initUserInfo() {
+    const account = localStorage.getItem('account') || '';
+    const roleName = localStorage.getItem('roleName') || '';
+    const el = document.getElementById('userInfo');
+    if (!el) return;
+    el.textContent = account && roleName ? account + ' · ' + roleName : (account || '未登录');
 }
 
 function renderPagination(container, pageNum, pages, onPageChange) {
@@ -31,7 +55,7 @@ function renderPagination(container, pageNum, pages, onPageChange) {
         container.appendChild(btn);
     }
 }
-//弹窗提示
+
 function openModal(id) {
     document.getElementById(id).classList.add('show');
 }
@@ -39,7 +63,7 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id).classList.remove('show');
 }
-//用户提示
+
 function toast(msg) {
     const el = document.createElement('div');
     el.textContent = msg;

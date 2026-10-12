@@ -1,93 +1,112 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的配送</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的配送 - 外卖配送系统</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="app-container">
-    <div th:replace="~{fragments/delivery-sidebar :: sidebar('mine')}"></div>
+    <aside class="sidebar">
+        <div class="logo">外卖配送</div>
+        <nav id="sideNav">
+            <a href="/api/delivery/ticket/page">配送任务</a>
+            <a href="/api/delivery/ticket/mine/page" class="active">我的配送</a>
+        </nav>
+        <a href="javascript:void(0)" class="logout" onclick="doLogout()">退出登录</a>
+    </aside>
 
-    <main class="content-area">
-        <header class="top-bar">
+    <div class="content-area">
+        <div class="top-bar">
             <h4>我的配送</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">delivery</span>
-        </header>
-        <section class="content-body">
+            <span class="user-info" id="userInfo">配送员</span>
+        </div>
+
+        <div class="content-body">
             <div class="card">
-                <div class="card-title">配送中</div>
+                <div class="card-title">
+                    <span>我的订单</span>
+                    <button class="btn btn-outline btn-sm" onclick="loadMine()">刷新</button>
+                </div>
                 <table>
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>店铺</th>
-                        <th>地址</th>
-                        <th>状态</th>
-                        <th>订单金额</th>
+                        <th>订单号</th>
+                        <th>配送地址</th>
+                        <th>备注</th>
                         <th>配送金额</th>
+                        <th>状态</th>
                         <th>操作</th>
                     </tr>
                     </thead>
-                    <tbody id="tbody"></tbody>
+                    <tbody id="mineBody">
+                    <tr><td colspan="6" style="text-align:center;color:#94a3b8;">加载中...</td></tr>
+                    </tbody>
                 </table>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 </div>
 
-<script th:src="@{/js/common.js}"></script>
+<script src="/js/common.js"></script>
 <script>
-    async function load() {
-        const list = await request('/api/delivery/ticket/mine/detail');
-        const tbody = document.getElementById('tbody');
-        tbody.innerHTML = '';
+    function statusBadge(status) {
+        const map = {
+            '配送中': 'background:#e0f2fe;color:#0369a1;',
+            '已完成': 'background:#dcfce7;color:#166534;',
+            '已接单': 'background:#fef9c3;color:#854d0e;',
+            '待接单': 'background:#f1f5f9;color:#475569;'
+        };
+        const style = map[status] || 'background:#f1f5f9;color:#475569;';
+        return `<span style="padding:3px 10px;border-radius:999px;font-size:12px;${style}">${status || '-'}</span>`;
+    }
 
+    function renderTable(list) {
+        const tbody = document.getElementById('mineBody');
         if (!list || list.length === 0) {
-            tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align:center;color:#94a3b8;padding:24px 0;">
-                    你还没有接任何订单
-                </td>
-            </tr>`;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;">暂无配送订单</td></tr>';
             return;
         }
+        tbody.innerHTML = list.map(t => `
+        <tr>
+            <td>#${t.id}</td>
+            <td>${t.address || '-'}</td>
+            <td>${t.note || '-'}</td>
+            <td>￥${Number(t.deliveryAmount || 0).toFixed(2)}</td>
+            <td>${statusBadge(t.status)}</td>
+            <td>
+                ${t.status === '配送中'
+            ? `<button class="btn btn-primary btn-sm" onclick="updateStatus(${t.id}, '已完成')">完成配送</button>`
+            : '<span style="color:#94a3b8;font-size:13px;">—</span>'}
+            </td>
+        </tr>
+    `).join('');
+    }
 
-        list.forEach(t => {
-            let buttons = '';
-            if (t.status === '已接单') {
-                buttons = `
-                    <button class="btn btn-primary btn-sm" onclick="updateStatus(${t.id}, '配送中')">配送中</button>
-                    <button class="btn btn-outline btn-sm" onclick="updateStatus(${t.id}, '已完成')">已完成</button>`;
-            } else if (t.status === '配送中') {
-                buttons = `
-                    <button class="btn btn-outline btn-sm" onclick="updateStatus(${t.id}, '已完成')">已完成</button>`;
-            } else {
-                buttons = `<span class="muted">—</span>`;
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${t.id}</td>
-                <td>${t.storeName}</td>
-                <td>${t.address}</td>
-                <td>${t.status}</td>
-                <td>￥${Number(t.totalAmount).toFixed(2)}</td>
-                <td>￥${Number(t.deliveryAmount).toFixed(2)}</td>
-                <td>${buttons}</td>`;
-            tbody.appendChild(tr);
-        });
+    async function loadMine() {
+        try {
+            const list = await request('/api/delivery/ticket/mine');
+            renderTable(list);
+        } catch (e) {
+            toast('加载失败：' + e.message);
+        }
     }
 
     async function updateStatus(id, status) {
-        const res = await request(`/api/delivery/ticket/status/${id}?status=${encodeURIComponent(status)}`, { method: 'PUT' });
-        toast(res.message);
-        if (res.success) {
-            await load();
+        try {
+            const data = await request('/api/delivery/ticket/status/' + id + '?status=' + encodeURIComponent(status), {
+                method: 'PUT'
+            });
+            toast(data.message);
+            if (data.success) loadMine();
+        } catch (e) {
+            toast('操作失败：' + e.message);
         }
     }
 
-    load();
+    initUserInfo();
+    loadMine();
 </script>
 </body>
 </html>
