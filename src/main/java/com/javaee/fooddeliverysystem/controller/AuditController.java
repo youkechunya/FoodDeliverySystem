@@ -148,7 +148,8 @@ public class AuditController {
     @PutMapping("/complaint/arbitrate/{id}")
     @ResponseBody
     public Map<String, Object> arbitrate(@PathVariable Integer id,
-                                         @RequestParam String resultText) {
+                                         @RequestParam(required = false, defaultValue = "待处理") String status,
+                                         @RequestParam(required = false, defaultValue = "") String resultText) {
         Map<String, Object> result = new HashMap<>();
         Complaint complaint = complaintService.selectById(id);
         if (complaint == null) {
@@ -156,8 +157,15 @@ public class AuditController {
             result.put("message", "投诉不存在");
             return result;
         }
+        //三种状态
+        if (!"待处理".equals(status) && !"已通过".equals(status) && !"未通过".equals(status)) {
+            result.put("success", false);
+            result.put("message", "非法的仲裁状态");
+            return result;
+        }
+
+        complaint.setStatus(status);
         complaint.setReply(resultText);
-        complaint.setStatus("已仲裁");
         boolean success = complaintService.update(complaint);
         result.put("success", success);
         result.put("message", success ? "仲裁完成" : "仲裁失败");

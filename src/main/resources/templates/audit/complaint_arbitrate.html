@@ -4,6 +4,40 @@
     <meta charset="UTF-8">
     <title>评价仲裁</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+        .badge-pending  { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+        .badge-approved { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+        .badge-rejected { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+        .badge-unknown  { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .filter-bar label { font-size: 13px; color: #475569; }
+        .filter-bar select {
+            width: 150px;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-bar select:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+        }
+    </style>
 </head>
 <body>
 <div class="app-container">
@@ -12,7 +46,7 @@
     <main class="content-area">
         <header class="top-bar">
             <h4>评价仲裁</h4>
-            <span class="user-info" th:text="${session.loginUser.account}">audit</span>
+            <span class="user-info" th:text="${session.loginUser?.account}">audit</span>
         </header>
         <section class="content-body">
 
@@ -35,6 +69,17 @@
 
             <div class="card">
                 <div class="card-title">投诉仲裁</div>
+
+                <div class="filter-bar">
+                    <label for="statusFilter">状态筛选：</label>
+                    <select id="statusFilter" onchange="onFilterChange()">
+                        <option value="">全部</option>
+                        <option value="待处理">待处理</option>
+                        <option value="已通过">已通过</option>
+                        <option value="未通过">未通过</option>
+                    </select>
+                </div>
+
                 <table>
                     <thead>
                     <tr>
@@ -55,97 +100,174 @@
     </main>
 </div>
 
+<div class="modal-mask" id="arbitrateModal">
+    <div class="modal" style="width: 440px;">
+        <h5>投诉仲裁</h5>
+        <input type="hidden" id="arbitrateId">
+
+        <div class="form-group">
+            <label>仲裁状态</label>
+            <select class="form-control" id="arbitrateStatus">
+                <option value="待处理">待处理</option>
+                <option value="已通过">已通过</option>
+                <option value="未通过">未通过</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>仲裁说明（可选）</label>
+            <textarea class="form-control" id="arbitrateReply" rows="3" placeholder="请输入仲裁说明"></textarea>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('arbitrateModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitArbitrate()">提交</button>
+        </div>
+    </div>
+</div>
+
 <script th:src="@{/js/common.js}"></script>
-<script>
+<script th:inline="none">
     let cPageNum = 1;
     const pageSize = 5;
 
+    const VALID_STATUS = ['待处理', '已通过', '未通过'];
+
+    /* ---------------- 被举报评论 ---------------- */
     async function loadReports() {
         const list = await request('/api/audit/review/list');
         const tbody = document.getElementById('reportTbody');
         tbody.innerHTML = '';
 
         if (!list || list.length === 0) {
-            tbody.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
-                    暂无待处理举报
-                </td>
-            </tr>`;
+            tbody.innerHTML =
+                '<tr>' +
+                '  <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">暂无待处理举报</td>' +
+                '</tr>';
             return;
         }
 
-        list.forEach(r => {
+        list.forEach(function (r) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${r.id}</td>
-                <td>${r.storeName ?? '-'}</td>
-                <td>${r.reviewContent ?? '-'}</td>
-                <td>${r.reason ?? '-'}</td>
-                <td>${r.createTime ?? '-'}</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id})">删除评论</button>
-                    <button class="btn btn-outline btn-sm" onclick="keepReview(${r.id})">保留评论</button>
-                </td>`;
+            tr.innerHTML =
+                '<td>' + r.id + '</td>' +
+                '<td>' + (r.storeName || '-') + '</td>' +
+                '<td>' + (r.reviewContent || '-') + '</td>' +
+                '<td>' + (r.reason || '-') + '</td>' +
+                '<td>' + (r.createTime || '-') + '</td>' +
+                '<td>' +
+                '  <button class="btn btn-danger btn-sm" onclick="deleteReview(' + r.id + ')">删除评论</button>' +
+                '  <button class="btn btn-outline btn-sm" onclick="keepReview(' + r.id + ')">保留评论</button>' +
+                '</td>';
             tbody.appendChild(tr);
         });
     }
 
     async function deleteReview(reportId) {
         if (!confirm('确定删除该评论？')) return;
-        const res = await request(`/api/audit/review/delete/${reportId}`, { method: 'DELETE' });
+        const res = await request('/api/audit/review/delete/' + reportId, { method: 'DELETE' });
         toast(res.message);
         if (res.success) loadReports();
     }
 
     async function keepReview(reportId) {
-        const res = await request(`/api/audit/review/keep/${reportId}`, { method: 'PUT' });
+        const res = await request('/api/audit/review/keep/' + reportId, { method: 'PUT' });
         toast(res.message);
         if (res.success) loadReports();
     }
 
+    /* ---------------- 投诉仲裁 ---------------- */
+
+    function displayStatus(raw) {
+        if (raw && VALID_STATUS.indexOf(raw) !== -1) return raw;
+        return '待处理';
+    }
+
+    function statusBadge(raw) {
+        const s = displayStatus(raw);
+        if (s === '待处理') return '<span class="badge badge-pending">待处理</span>';
+        if (s === '已通过') return '<span class="badge badge-approved">已通过</span>';
+        if (s === '未通过') return '<span class="badge badge-rejected">未通过</span>';
+        return '<span class="badge badge-unknown">' + (raw || '未知') + '</span>';
+    }
+
+    function onFilterChange() {
+        cPageNum = 1;
+        loadComplaints();
+    }
+
     async function loadComplaints() {
-        const data = await request(`/api/audit/complaint/list?pageNum=${cPageNum}&pageSize=${pageSize}`);
+        const data = await request('/api/audit/complaint/list?pageNum=' + cPageNum + '&pageSize=' + pageSize);
         const tbody = document.getElementById('complaintTbody');
         tbody.innerHTML = '';
 
-        if (!data.list || data.list.length === 0) {
-            tbody.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
-                    暂无投诉
-                </td>
-            </tr>`;
+        const filterStatus = document.getElementById('statusFilter').value;
+        let list = (data.list || []).map(function (c) {
+            const copy = Object.assign({}, c);
+            copy._status = displayStatus(c.status);
+            return copy;
+        });
+        if (filterStatus) {
+            list = list.filter(function (c) { return c._status === filterStatus; });
+        }
+
+        if (list.length === 0) {
+            tbody.innerHTML =
+                '<tr>' +
+                '  <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">暂无投诉</td>' +
+                '</tr>';
             document.getElementById('complaintPagination').innerHTML = '';
             return;
         }
 
-        data.list.forEach(c => {
+        list.forEach(function (c) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${c.id}</td>
-                <td>${c.userId}</td>
-                <td>${c.storeId}</td>
-                <td>${c.content}</td>
-                <td>${c.status}</td>
-                <td><button class="btn btn-primary btn-sm" onclick="arbitrate(${c.id})">仲裁</button></td>`;
+            tr.innerHTML =
+                '<td>' + c.id + '</td>' +
+                '<td>' + c.userId + '</td>' +
+                '<td>' + c.storeId + '</td>' +
+                '<td>' + (c.content || '-') + '</td>' +
+                '<td>' + statusBadge(c.status) + '</td>' +
+                '<td>' +
+                '  <button class="btn btn-primary btn-sm" onclick="arbitrate(' + c.id + ', \'' + c._status + '\')">仲裁</button>' +
+                '</td>';
             tbody.appendChild(tr);
         });
 
-        renderPagination(document.getElementById('complaintPagination'), data.pageNum, data.pages, p => {
+        renderPagination(document.getElementById('complaintPagination'), data.pageNum, data.pages, function (p) {
             cPageNum = p;
             loadComplaints();
         });
     }
 
-    async function arbitrate(id) {
-        const text = prompt('请输入仲裁结果：');
-        if (!text) return;
-        const res = await request(`/api/audit/complaint/arbitrate/${id}?resultText=${encodeURIComponent(text)}`, { method: 'PUT' });
-        toast(res.message);
-        if (res.success) loadComplaints();
+    /* ---------------- 仲裁弹窗 ---------------- */
+    function arbitrate(id, currentStatus) {
+        document.getElementById('arbitrateId').value = id;
+        const status = (VALID_STATUS.indexOf(currentStatus) !== -1) ? currentStatus : '待处理';
+        document.getElementById('arbitrateStatus').value = status;
+        document.getElementById('arbitrateReply').value = '';
+        openModal('arbitrateModal');
     }
 
+    async function submitArbitrate() {
+        const id = document.getElementById('arbitrateId').value;
+        const status = document.getElementById('arbitrateStatus').value;
+        const reply = document.getElementById('arbitrateReply').value;
+
+        /* 避免源码里出现裸 &，用数组 join 拼查询串 */
+        const url = '/api/audit/complaint/arbitrate/' + id
+            + '?' + ['status=' + encodeURIComponent(status),
+                'resultText=' + encodeURIComponent(reply)].join('&');
+
+        const res = await request(url, { method: 'PUT' });
+        toast(res.message);
+        if (res.success) {
+            closeModal('arbitrateModal');
+            await loadComplaints();
+        }
+    }
+
+    /* ---------------- 初始化 ---------------- */
     loadReports();
     loadComplaints();
 </script>
