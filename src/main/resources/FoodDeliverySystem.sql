@@ -138,6 +138,7 @@ create table report(
     foreign key (storeId) references store(id),
     foreign key (reporterId) references account(id)
 );
+ALTER TABLE account MODIFY password VARCHAR(100) NOT NULL;
 
 insert into account (id, account, password, status) values
 (1,  'reimu',    'reimu123',    '正常'),

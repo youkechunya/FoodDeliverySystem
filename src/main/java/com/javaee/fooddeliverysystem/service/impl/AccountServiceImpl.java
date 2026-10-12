@@ -23,14 +23,26 @@ public class AccountServiceImpl implements AccountService {
     public Account selectById(Integer id) {
         return accountMapper.selectById(id);
     }
-
+//加密模块
     @Override
     public boolean insert(Account account) {
+        if (account.getPassword() != null
+                && !account.getPassword().isEmpty()
+                && !account.getPassword().startsWith("$2")) {
+            account.setPassword(
+                    com.javaee.fooddeliverysystem.security.PasswordEncoderUtil.encode(account.getPassword()));
+        }
         return accountMapper.insert(account) > 0;
     }
 
     @Override
     public boolean update(Account account) {
+        if (account.getPassword() != null
+                && !account.getPassword().isEmpty()
+                && !account.getPassword().startsWith("$2")) {
+            account.setPassword(
+                    com.javaee.fooddeliverysystem.security.PasswordEncoderUtil.encode(account.getPassword()));
+        }
         return accountMapper.update(account) > 0;
     }
 

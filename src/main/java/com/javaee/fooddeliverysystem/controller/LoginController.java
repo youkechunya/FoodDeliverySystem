@@ -59,7 +59,8 @@ public class LoginController {
                 break;
             }
         }
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user == null || !com.javaee.fooddeliverysystem.security.PasswordEncoderUtil
+                .matches(password, user.getPassword())) {
             model.addAttribute("error", "用户名或密码错误！");
             model.addAttribute("roles", roleService.selectAll());
             return "login";
@@ -99,7 +100,7 @@ public class LoginController {
                            Model model) {
         Account user = new Account();
         user.setAccount(account);
-        user.setPassword(password);
+        user.setPassword(com.javaee.fooddeliverysystem.security.PasswordEncoderUtil.encode(password));
         user.setStatus("正常");
 
         if (accountService.insert(user)) {
