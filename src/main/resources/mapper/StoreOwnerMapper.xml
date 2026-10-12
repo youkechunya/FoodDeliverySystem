@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.javaee.fooddeliverysystem.mapper.StoreOwnerMapper">
+
+    <resultMap id="storeOwnerMap" type="com.javaee.fooddeliverysystem.entity.StoreOwner">
+        <id column="id" property="id"/>
+        <result column="accountId" property="accountId"/>
+        <result column="storeId" property="storeId"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+
+    <select id="selectStoreIdsByAccountId" resultType="java.lang.Integer">
+        select storeId from store_owner where accountId = #{accountId}
+    </select>
+
+    <select id="selectByStoreId" resultMap="storeOwnerMap">
+        select id, accountId, storeId, createTime
+        from store_owner
+        where storeId = #{storeId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into store_owner(accountId, storeId)
+        values(#{accountId}, #{storeId})
+    </insert>
+
+    <delete id="delete">
+        delete from store_owner
+        where accountId = #{accountId} and storeId = #{storeId}
+    </delete>
+
+</mapper>

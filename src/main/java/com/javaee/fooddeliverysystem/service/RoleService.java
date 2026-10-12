@@ -12,4 +12,5 @@ public interface RoleService {
     boolean insert(Role role);
     boolean update(Role role);
     boolean deleteById(@Param("id") Integer id);
+    boolean updateUserRoles(@Param("userId") Integer userId,@Param("roleIds") List<Integer> roleIds);
 }

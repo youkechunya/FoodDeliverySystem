@@ -16,7 +16,13 @@ async function request(url, options = {}) {
 
 function renderPagination(container, pageNum, pages, onPageChange) {
     container.innerHTML = '';
-    if (pages <= 1) return;
+    if (pages <= 0) return;
+
+    if (pages === 1) {
+        container.innerHTML = `<span style="font-size:13px;color:#94a3b8;">第 1 / 1 页</span>`;
+        return;
+    }
+
     for (let i = 1; i <= pages; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;

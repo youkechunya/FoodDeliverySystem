@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>店铺评价</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/customer-sidebar :: sidebar('store')}"></div>
+
+    <main class="content-area">
+        <header class="top-bar">
+            <h4 id="pageTitle">店铺评价</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">customer</span>
+        </header>
+        <section class="content-body">
+
+            <div class="card">
+                <div class="card-title">
+                    <span>评价列表</span>
+                    <button class="btn btn-outline btn-sm" onclick="goBack()">返回店铺</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户ID</th>
+                        <th>评价内容</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    const params = new URLSearchParams(location.search);
+    const storeId = parseInt(params.get('storeId')) || 0;
+
+    async function loadStore() {
+        if (!storeId) return;
+        try {
+            const s = await request(`/api/customer/store/${storeId}`);
+            if (s) {
+                document.getElementById('pageTitle').textContent = (s.name ?? '店铺') + ' - 评价';
+            }
+        } catch (e) {
+            // 忽略
+        }
+    }
+
+    async function loadReviews() {
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+
+        if (!storeId) {
+            tbody.innerHTML = `
+                <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    缺少店铺信息
+                </td></tr>`;
+            return;
+        }
+
+        const list = await request(`/api/customer/review/store/${storeId}`);
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无评价
+                </td></tr>`;
+            return;
+        }
+
+        list.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.userId}</td>
+                <td>${r.content}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="report(${r.id})">举报</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function report(reviewId) {
+        const reason = prompt('请输入举报理由：');
+        if (!reason) return;
+        const res = await request(
+            `/api/customer/review/report?reviewId=${reviewId}&reason=${encodeURIComponent(reason)}`,
+            { method: 'POST' }
+        );
+        toast(res.message);
+    }
+
+    function goBack() {
+        location.href = '/api/customer/store/page';
+    }
+
+    loadStore();
+    loadReviews();
+</script>
+</body>
+</html>

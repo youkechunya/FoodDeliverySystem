@@ -1,5 +1,10 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class ItemType {
     private int id;
     private String type;
@@ -11,8 +16,4 @@ public class ItemType {
         this.type = type;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
 }

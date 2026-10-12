@@ -1,5 +1,10 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class PersonalInformation {
     private int id;
     private int accountId;
@@ -13,10 +18,4 @@ public class PersonalInformation {
         this.address = address;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public int getAccountId() { return accountId; }
-    public void setAccountId(int accountId) { this.accountId = accountId; }
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
 }

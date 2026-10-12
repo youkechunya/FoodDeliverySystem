@@ -3,9 +3,11 @@ package com.javaee.fooddeliverysystem.controller;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.javaee.fooddeliverysystem.entity.Complaint;
+import com.javaee.fooddeliverysystem.entity.Report;
 import com.javaee.fooddeliverysystem.entity.Review;
 import com.javaee.fooddeliverysystem.entity.Store;
 import com.javaee.fooddeliverysystem.service.ComplaintService;
+import com.javaee.fooddeliverysystem.service.ReportService;
 import com.javaee.fooddeliverysystem.service.ReviewService;
 import com.javaee.fooddeliverysystem.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class AuditController {
 
     @Autowired
     private ComplaintService complaintService;
+
+    @Autowired
+    private ReportService reportService;
 
     @GetMapping("/store/page")
     public String storePage() {
@@ -91,27 +96,36 @@ public class AuditController {
 
     @GetMapping("/review/list")
     @ResponseBody
-    public Map<String, Object> listReviews(@RequestParam(defaultValue = "1") int pageNum,
-                                           @RequestParam(defaultValue = "5") int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
-        List<Review> reviews = reviewService.selectAll();
-        PageInfo<Review> pageInfo = new PageInfo<>(reviews);
+    public List<Report> listReports() {
+        return reportService.selectPending();
+    }
 
+    @DeleteMapping("/review/delete/{reportId}")
+    @ResponseBody
+    public Map<String, Object> deleteReviewByReport(@PathVariable Integer reportId) {
         Map<String, Object> result = new HashMap<>();
-        result.put("list", pageInfo.getList());
-        result.put("total", pageInfo.getTotal());
-        result.put("pageNum", pageInfo.getPageNum());
-        result.put("pages", pageInfo.getPages());
+        Report report = reportService.selectById(reportId);
+        if (report == null) {
+            result.put("success", false);
+            result.put("message", "举报记录不存在");
+            return result;
+        }
+
+        reviewService.deleteById(report.getReviewId());
+        reportService.updateStatus(reportId, "已删除");
+
+        result.put("success", true);
+        result.put("message", "评论已删除");
         return result;
     }
 
-    @DeleteMapping("/review/delete/{id}")
+    @PutMapping("/review/keep/{reportId}")
     @ResponseBody
-    public Map<String, Object> deleteReview(@PathVariable Integer id) {
+    public Map<String, Object> keepReview(@PathVariable Integer reportId) {
         Map<String, Object> result = new HashMap<>();
-        boolean success = reviewService.deleteById(id);
+        boolean success = reportService.updateStatus(reportId, "已保留");
         result.put("success", success);
-        result.put("message", success ? "删除成功" : "删除失败");
+        result.put("message", success ? "已保留该评论" : "操作失败");
         return result;
     }
 

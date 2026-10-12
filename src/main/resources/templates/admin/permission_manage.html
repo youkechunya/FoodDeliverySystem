@@ -2,38 +2,93 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>权限管理</title>
+    <title>账号角色管理</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .role-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+
+        .role-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #334155;
+            background: #fff;
+        }
+
+        .role-option:hover {
+            border-color: #00aacc;
+            background: #f8fafc;
+        }
+
+        .role-option input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .role-tag {
+            display: inline-block;
+            margin: 2px 4px 2px 0;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e0f7ff;
+            color: #0369a1;
+            font-size: 12px;
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        .empty-roles {
+            grid-column: 1 / -1;
+            color: #94a3b8;
+            font-size: 14px;
+            padding: 12px 0;
+        }
+    </style>
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/admin/account/page}">用户管理</a>
-            <a th:href="@{/api/admin/role/page}">角色管理</a>
-            <a class="active" th:href="@{/api/admin/permission/page}">权限管理</a>
-            <a th:href="@{/api/admin/store/page}">店铺管理</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/admin-sidebar :: sidebar('permission')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>权限管理</h4>
             <span class="user-info" th:text="${session.loginUser.account}">admin</span>
         </header>
+
         <section class="content-body">
             <div class="card">
                 <div class="card-title">
-                    <span>权限列表</span>
-                    <button class="btn btn-primary btn-sm" onclick="openAdd()">新增权限</button>
+                    <span>账号角色列表</span>
                 </div>
+
                 <table>
                     <thead>
-                    <tr><th>ID</th><th>名称</th><th>URL</th><th>角色ID</th><th>操作</th></tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>账号</th>
+                        <th>状态</th>
+                        <th>已分配角色</th>
+                        <th>操作</th>
+                    </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
                 </table>
+
                 <div class="pagination" id="pagination"></div>
             </div>
         </section>
@@ -42,11 +97,14 @@
 
 <div class="modal-mask" id="modal">
     <div class="modal">
-        <h5 id="modalTitle">新增权限</h5>
-        <input type="hidden" id="f_id">
-        <div class="form-group"><label>名称</label><input class="form-control" id="f_name"></div>
-        <div class="form-group"><label>URL</label><input class="form-control" id="f_url"></div>
-        <div class="form-group"><label>角色ID</label><input class="form-control" id="f_roleId" type="number"></div>
+        <h5 id="modalTitle">配置账号角色</h5>
+        <input type="hidden" id="f_userId">
+
+        <div class="form-group">
+            <label>选择角色（可多选）</label>
+            <div id="roleCheckboxes" class="role-list"></div>
+        </div>
+
         <div class="modal-footer">
             <button class="btn btn-outline" onclick="closeModal('modal')">取消</button>
             <button class="btn btn-primary" onclick="save()">保存</button>
@@ -59,74 +117,134 @@
     let pageNum = 1;
     const pageSize = 5;
 
+    let allRoles = [];
+    let currentAccounts = [];
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[ch]));
+    }
+
+    async function loadRoles() {
+        allRoles = await request('/api/admin/permission/role/list');
+        renderRoleCheckboxes([]);
+    }
+
+    function renderRoleCheckboxes(selectedIds = []) {
+        const container = document.getElementById('roleCheckboxes');
+        const selectedSet = new Set(selectedIds.map(Number));
+
+        if (!allRoles || allRoles.length === 0) {
+            container.innerHTML = '<div class="empty-roles">暂无可选角色</div>';
+            return;
+        }
+
+        container.innerHTML = allRoles.map(role => `
+            <label class="role-option">
+                <input
+                    type="checkbox"
+                    class="role-checkbox"
+                    value="${role.id}"
+                    ${selectedSet.has(Number(role.id)) ? 'checked' : ''}>
+                <span>${escapeHtml(role.roleName)}</span>
+            </label>
+        `).join('');
+    }
+
     async function load() {
-        const data = await request(`/api/admin/permission/list?pageNum=${pageNum}&pageSize=${pageSize}`);
-        const tbody = document.getElementById('tbody');
-        tbody.innerHTML = '';
-        data.list.forEach(p => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${p.id}</td>
-                <td>${p.name}</td>
-                <td>${p.url}</td>
-                <td>${p.roleId}</td>
-                <td>
-                    <button class="btn btn-outline btn-sm" onclick="openEdit(${p.id})">编辑</button>
-                    <button class="btn btn-danger btn-sm" onclick="del(${p.id})">删除</button>
-                </td>`;
-            tbody.appendChild(tr);
-        });
-        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
-            pageNum = p;
-            load();
-        });
+        const data = await request(
+            `/api/admin/account/list?pageNum=${pageNum}&pageSize=${pageSize}`
+        );
+
+        currentAccounts = data.list || [];
+
+        const rows = await Promise.all(currentAccounts.map(async account => {
+            const assignedRoles = await request(
+                `/api/admin/permission/roles/${account.id}`
+            );
+
+            const roleHtml = assignedRoles.length > 0
+                ? assignedRoles.map(role => `<span class="role-tag">${escapeHtml(role.roleName)}</span>`).join('')
+                : '<span class="muted">未分配</span>';
+
+            return `
+                <tr>
+                    <td>${account.id}</td>
+                    <td>${escapeHtml(account.account)}</td>
+                    <td>${escapeHtml(account.status)}</td>
+                    <td>${roleHtml}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm"
+                                onclick="openEdit(${account.id})">
+                            配置角色
+                        </button>
+                    </td>
+                </tr>`;
+        }));
+
+        document.getElementById('tbody').innerHTML = rows.join('');
+
+        renderPagination(
+            document.getElementById('pagination'),
+            data.pageNum,
+            data.pages,
+            p => {
+                pageNum = p;
+                load();
+            }
+        );
     }
 
-    function openAdd() {
-        document.getElementById('modalTitle').textContent = '新增权限';
-        document.getElementById('f_id').value = '';
-        document.getElementById('f_name').value = '';
-        document.getElementById('f_url').value = '';
-        document.getElementById('f_roleId').value = '';
-        openModal('modal');
-    }
+    async function openEdit(accountId) {
+        const account = currentAccounts.find(item => item.id === accountId);
+        const assignedRoles = await request(
+            `/api/admin/permission/roles/${accountId}`
+        );
 
-    async function openEdit(id) {
-        const p = await request(`/api/admin/permission/${id}`);
-        document.getElementById('modalTitle').textContent = '编辑权限';
-        document.getElementById('f_id').value = p.id;
-        document.getElementById('f_name').value = p.name;
-        document.getElementById('f_url').value = p.url;
-        document.getElementById('f_roleId').value = p.roleId;
+        document.getElementById('modalTitle').textContent =
+            `配置角色 - ${account ? account.account : accountId}`;
+
+        document.getElementById('f_userId').value = accountId;
+
+        renderRoleCheckboxes(assignedRoles.map(role => role.id));
+
         openModal('modal');
     }
 
     async function save() {
-        const id = document.getElementById('f_id').value;
+        const userId = parseInt(document.getElementById('f_userId').value, 10);
+
+        const roleIds = Array.from(
+            document.querySelectorAll('.role-checkbox:checked')
+        ).map(checkbox => parseInt(checkbox.value, 10));
+
         const body = {
-            id: id ? parseInt(id) : 0,
-            name: document.getElementById('f_name').value,
-            url: document.getElementById('f_url').value,
-            roleId: parseInt(document.getElementById('f_roleId').value) || 0
+            userId: userId,
+            roleIds: roleIds
         };
-        const url = id ? '/api/admin/permission/update' : '/api/admin/permission/add';
-        const method = id ? 'PUT' : 'POST';
-        const res = await request(url, { method, body: JSON.stringify(body) });
+
+        const res = await request('/api/admin/permission/saveUserRoles', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+
         toast(res.message);
+
         if (res.success) {
             closeModal('modal');
             load();
         }
     }
 
-    async function del(id) {
-        if (!confirm('确定删除？')) return;
-        const res = await request(`/api/admin/permission/delete/${id}`, { method: 'DELETE' });
-        toast(res.message);
-        load();
-    }
-
-    load();
+    (async function init() {
+        await loadRoles();
+        await load();
+    })();
 </script>
 </body>
 </html>

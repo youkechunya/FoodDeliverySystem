@@ -12,35 +12,43 @@
         <result column="deliveryGuyId" property="deliveryGuyId"/>
         <result column="note" property="note"/>
         <result column="userId" property="userId"/>
+        <result column="deliveryRate" property="deliveryRate"/>
     </resultMap>
 
     <select id="selectAll" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId from ticket
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
+        from ticket
     </select>
 
     <select id="selectById" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
         from ticket where id = #{id}
     </select>
 
+    <select id="selectByStatus" resultMap="ticketMap">
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
+        from ticket
+        where status = #{status}
+    </select>
+
     <select id="selectByStoreId" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
         from ticket where storeId = #{storeId}
     </select>
 
     <select id="selectByDeliveryGuyId" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
         from ticket where deliveryGuyId = #{deliveryGuyId}
     </select>
 
     <select id="selectByUserId" resultMap="ticketMap">
-        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId
+        select id, publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate
         from ticket where userId = #{userId}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into ticket(publishDate, address, storeId, status, deliveryGuyId, note, userId)
-        values(#{publishDate}, #{address}, #{storeId}, #{status}, #{deliveryGuyId}, #{note}, #{userId})
+        insert into ticket(publishDate, address, storeId, status, deliveryGuyId, note, userId, deliveryRate)
+        values(#{publishDate}, #{address}, #{storeId}, #{status}, #{deliveryGuyId}, #{note}, #{userId}, #{deliveryRate})
     </insert>
 
     <update id="update">
@@ -51,7 +59,8 @@
             status = #{status},
             deliveryGuyId = #{deliveryGuyId},
             note = #{note},
-            userId = #{userId}
+            userId = #{userId},
+            deliveryRate = #{deliveryRate}
         where id = #{id}
     </update>
 

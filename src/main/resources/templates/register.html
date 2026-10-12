@@ -19,15 +19,15 @@
     <form th:action="@{/auth/register}" method="post" onsubmit="return checkPwd()">
         <div class="form-group">
             <label>账号</label>
-            <input class="form-control" type="text" name="account" id="account" required>
+            <label for="account"></label><input class="form-control" type="text" name="account" id="account" required>
         </div>
         <div class="form-group">
             <label>密码</label>
-            <input class="form-control" type="password" name="password" id="password" required>
+            <label for="password"></label><input class="form-control" type="password" name="password" id="password" required>
         </div>
         <div class="form-group">
             <label>确认密码</label>
-            <input class="form-control" type="password" id="password2" required>
+            <label for="password2"></label><input class="form-control" type="password" id="password2" required>
         </div>
         <button class="btn btn-primary" type="submit">注册</button>
     </form>

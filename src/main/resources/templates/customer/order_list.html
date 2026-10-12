@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/customer/store/page}">店铺</a>
-            <a th:href="@{/api/customer/cart/page}">购物车</a>
-            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
-            <a th:href="@{/api/customer/review/page}">评价</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/customer-sidebar :: sidebar('ticket')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>我的订单</h4>
@@ -35,28 +27,79 @@
         </section>
     </main>
 </div>
-
+<div class="modal-mask" id="itemModal">
+    <div class="modal" style="width: 520px;">
+        <h5>订单明细</h5>
+        <table>
+            <thead>
+            <tr><th>商品</th><th>单价</th><th>数量</th><th>小计</th></tr>
+            </thead>
+            <tbody id="itemBody"></tbody>
+            <tfoot>
+            <tr><th colspan="3" style="text-align:right;">合计</th><th id="itemTotal"></th></tr>
+            </tfoot>
+        </table>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('itemModal')">关闭</button>
+        </div>
+    </div>
+</div>
 <script th:src="@{/js/common.js}"></script>
 <script>
-    const userId = /*[[${session.loginUser.id}]]*/ 0;
-
     async function load() {
-        const list = await request(`/api/customer/ticket/list/${userId}`);
+        const list = await request('/api/customer/ticket/mine');
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    你还没有订单，去「店铺」逛逛吧
+                </td>
+            </tr>`;
+            return;
+        }
         list.forEach(t => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${t.id}</td>
-                <td>${t.address}</td>
-                <td>${t.storeId}</td>
-                <td>${t.status}</td>
-                <td>
-                    <button class="btn btn-outline btn-sm" onclick="review(${t.storeId})">评价</button>
-                    <button class="btn btn-danger btn-sm" onclick="complaint(${t.storeId}, ${t.id})">投诉</button>
-                </td>`;
+            <td>${t.id}</td>
+            <td>${t.address}</td>
+            <td>${t.storeId}</td>
+            <td>${t.status}</td>
+            <td>
+                <button class="btn btn-outline btn-sm" onclick="viewItems(${t.id})">明细</button>
+                <button class="btn btn-outline btn-sm" onclick="review(${t.storeId})">评价</button>
+                <button class="btn btn-danger btn-sm" onclick="complaint(${t.storeId}, ${t.id})">投诉</button>
+            </td>`;
             tbody.appendChild(tr);
         });
+    }
+
+    async function viewItems(ticketId) {
+        const items = await request(`/api/customer/ticket/items/${ticketId}`);
+        const tbody = document.getElementById('itemBody');
+        tbody.innerHTML = '';
+        if (!items || items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">无明细</td></tr>';
+            document.getElementById('itemTotal').textContent = '';
+        } else {
+            let total = 0;
+            items.forEach(i => {
+                const name = i.itemName || ('商品#' + i.itemId);
+                const subtotal = (parseFloat(i.price) * i.quantity).toFixed(2);
+                total += parseFloat(subtotal);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${name}</td>
+                <td>${i.price}</td>
+                <td>${i.quantity}</td>
+                <td>${subtotal}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('itemTotal').textContent = '￥' + total.toFixed(2);
+        }
+        openModal('itemModal');
     }
 
     function review(storeId) {
@@ -66,7 +109,7 @@
     async function complaint(storeId, ticketId) {
         const content = prompt('请输入投诉内容：');
         if (!content) return;
-        const body = { userId, storeId, ticketId, content };
+        const body = { storeId, ticketId, content };
         const res = await request('/api/customer/complaint/add', {
             method: 'POST',
             body: JSON.stringify(body)

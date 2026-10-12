@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>店铺评价</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/store-sidebar :: sidebar('review')}"></div>
+
+    <main class="content-area">
+        <header class="top-bar">
+            <h4>店铺评价</h4>
+            <span class="user-info" th:text="${session.loginUser.account}">store</span>
+        </header>
+        <section class="content-body">
+            <div class="card">
+                <div class="card-title">评价列表</div>
+                <table>
+                    <thead>
+                    <tr><th>ID</th><th>用户ID</th><th>内容</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:src="@{/js/common.js}"></script>
+<script>
+    async function load() {
+        const list = await request('/api/store/review/list');
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无评价
+                </td>
+            </tr>`;
+            return;
+        }
+
+        list.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.userId}</td>
+                <td>${r.content}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="report(${r.id})">举报</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function report(reviewId) {
+        const reason = prompt('请输入举报理由：');
+        if (!reason) return;
+        const res = await request(`/api/store/review/report?reviewId=${reviewId}&reason=${encodeURIComponent(reason)}`, { method: 'POST' });
+        toast(res.message);
+        if (res.success) load();
+    }
+
+    load();
+</script>
+</body>
+</html>

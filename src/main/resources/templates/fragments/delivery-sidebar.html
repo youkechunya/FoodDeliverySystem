@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside class="sidebar" th:fragment="sidebar(active)">
+    <div class="logo">快餐配送</div>
+    <nav>
+        <a th:href="@{/api/delivery/ticket/page}"
+           th:classappend="${active == 'available'} ? 'active'">可接订单</a>
+        <a th:href="@{/api/delivery/ticket/mine/page}"
+           th:classappend="${active == 'mine'} ? 'active'">我的配送</a>
+    </nav>
+    <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+</aside>
+
+</body>
+</html>

@@ -7,82 +7,119 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/audit/store/page}">店铺审核</a>
-            <a class="active" th:href="@{/api/audit/review/page}">评价仲裁</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/audit-sidebar :: sidebar('review')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>评价仲裁</h4>
             <span class="user-info" th:text="${session.loginUser.account}">audit</span>
         </header>
         <section class="content-body">
+
             <div class="card">
-                <div class="card-title">评价列表</div>
+                <div class="card-title">被举报评论</div>
                 <table>
                     <thead>
-                    <tr><th>ID</th><th>用户ID</th><th>店铺ID</th><th>内容</th><th>操作</th></tr>
+                    <tr>
+                        <th>举报ID</th>
+                        <th>店铺</th>
+                        <th>评论内容</th>
+                        <th>举报理由</th>
+                        <th>举报时间</th>
+                        <th>操作</th>
+                    </tr>
                     </thead>
-                    <tbody id="tbody"></tbody>
+                    <tbody id="reportTbody"></tbody>
                 </table>
-                <div class="pagination" id="pagination"></div>
             </div>
 
             <div class="card">
                 <div class="card-title">投诉仲裁</div>
                 <table>
                     <thead>
-                    <tr><th>ID</th><th>用户ID</th><th>店铺ID</th><th>内容</th><th>状态</th><th>操作</th></tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户ID</th>
+                        <th>店铺ID</th>
+                        <th>内容</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
                     </thead>
                     <tbody id="complaintTbody"></tbody>
                 </table>
                 <div class="pagination" id="complaintPagination"></div>
             </div>
+
         </section>
     </main>
 </div>
 
 <script th:src="@{/js/common.js}"></script>
 <script>
-    let pageNum = 1;
-    const pageSize = 5;
     let cPageNum = 1;
+    const pageSize = 5;
 
-    async function loadReviews() {
-        const data = await request(`/api/audit/review/list?pageNum=${pageNum}&pageSize=${pageSize}`);
-        const tbody = document.getElementById('tbody');
+    async function loadReports() {
+        const list = await request('/api/audit/review/list');
+        const tbody = document.getElementById('reportTbody');
         tbody.innerHTML = '';
-        data.list.forEach(r => {
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无待处理举报
+                </td>
+            </tr>`;
+            return;
+        }
+
+        list.forEach(r => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${r.id}</td>
-                <td>${r.userId}</td>
-                <td>${r.storeId}</td>
-                <td>${r.content}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="delReview(${r.id})">删除</button></td>`;
+                <td>${r.storeName ?? '-'}</td>
+                <td>${r.reviewContent ?? '-'}</td>
+                <td>${r.reason ?? '-'}</td>
+                <td>${r.createTime ?? '-'}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id})">删除评论</button>
+                    <button class="btn btn-outline btn-sm" onclick="keepReview(${r.id})">保留评论</button>
+                </td>`;
             tbody.appendChild(tr);
-        });
-        renderPagination(document.getElementById('pagination'), data.pageNum, data.pages, p => {
-            pageNum = p;
-            loadReviews();
         });
     }
 
-    async function delReview(id) {
-        if (!confirm('确定删除该评价？')) return;
-        const res = await request(`/api/audit/review/delete/${id}`, { method: 'DELETE' });
+    async function deleteReview(reportId) {
+        if (!confirm('确定删除该评论？')) return;
+        const res = await request(`/api/audit/review/delete/${reportId}`, { method: 'DELETE' });
         toast(res.message);
-        loadReviews();
+        if (res.success) loadReports();
+    }
+
+    async function keepReview(reportId) {
+        const res = await request(`/api/audit/review/keep/${reportId}`, { method: 'PUT' });
+        toast(res.message);
+        if (res.success) loadReports();
     }
 
     async function loadComplaints() {
         const data = await request(`/api/audit/complaint/list?pageNum=${cPageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('complaintTbody');
         tbody.innerHTML = '';
+
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无投诉
+                </td>
+            </tr>`;
+            document.getElementById('complaintPagination').innerHTML = '';
+            return;
+        }
+
         data.list.forEach(c => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -94,6 +131,7 @@
                 <td><button class="btn btn-primary btn-sm" onclick="arbitrate(${c.id})">仲裁</button></td>`;
             tbody.appendChild(tr);
         });
+
         renderPagination(document.getElementById('complaintPagination'), data.pageNum, data.pages, p => {
             cPageNum = p;
             loadComplaints();
@@ -105,10 +143,10 @@
         if (!text) return;
         const res = await request(`/api/audit/complaint/arbitrate/${id}?resultText=${encodeURIComponent(text)}`, { method: 'PUT' });
         toast(res.message);
-        loadComplaints();
+        if (res.success) loadComplaints();
     }
 
-    loadReviews();
+    loadReports();
     loadComplaints();
 </script>
 </body>

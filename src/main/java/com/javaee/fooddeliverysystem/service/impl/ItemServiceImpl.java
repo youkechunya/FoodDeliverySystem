@@ -30,6 +30,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public List<Item> selectByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return itemMapper.selectByIds(ids);
+    }
+
+    @Override
     public boolean insert(Item item) {
         return itemMapper.insert(item) > 0;
     }

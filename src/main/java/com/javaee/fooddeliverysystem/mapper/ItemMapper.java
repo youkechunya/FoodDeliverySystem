@@ -12,6 +12,7 @@ public interface ItemMapper {
     List<Item> selectAll();
     Item selectById(@Param("id") Integer id);
     List<Item> selectByTypeId(@Param("typeId") Integer typeId);
+    List<Item> selectByIds(@Param("ids") List<Integer> ids);
     int insert(Item item);
     int update(Item item);
     int deleteById(@Param("id") Integer id);

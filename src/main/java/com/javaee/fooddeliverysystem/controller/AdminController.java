@@ -6,6 +6,7 @@ import com.javaee.fooddeliverysystem.entity.Account;
 import com.javaee.fooddeliverysystem.entity.Permission;
 import com.javaee.fooddeliverysystem.entity.Role;
 import com.javaee.fooddeliverysystem.entity.Store;
+import com.javaee.fooddeliverysystem.entity.dto.AccountRoleDTO;
 import com.javaee.fooddeliverysystem.service.AccountService;
 import com.javaee.fooddeliverysystem.service.PermissionService;
 import com.javaee.fooddeliverysystem.service.RoleService;
@@ -179,6 +180,53 @@ public class AdminController {
         return result;
     }
 
+    /**
+     * 查询所有可选角色，用于权限管理页面的角色多选框
+     */
+    @GetMapping("/permission/role/list")
+    @ResponseBody
+    public List<Role> listAllRolesForPermission() {
+        return roleService.selectAll();
+    }
+
+    /**
+     * 查询某个账号当前已经拥有的所有角色
+     */
+    @GetMapping("/permission/roles/{userId}")
+    @ResponseBody
+    public List<Role> listRolesByUserId(@PathVariable Integer userId) {
+        return roleService.selectRolesByUserId(userId);
+    }
+
+    /**
+     * 保存账号角色配置
+     * roleIds 可以包含多个角色，也可以为空表示清除该账号的全部角色
+     */
+    @PostMapping("/permission/saveUserRoles")
+    @ResponseBody
+    public Map<String, Object> saveUserRoles(@RequestBody AccountRoleDTO dto) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            if (dto == null || dto.getUserId() == null) {
+                throw new IllegalArgumentException("账号ID不能为空");
+            }
+
+            boolean success = roleService.updateUserRoles(
+                    dto.getUserId(),
+                    dto.getRoleIds()
+            );
+
+            result.put("success", success);
+            result.put("message", success ? "角色配置成功" : "角色配置失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "角色配置失败：" + e.getMessage());
+        }
+
+        return result;
+    }
+
     @GetMapping("/permission/list")
     @ResponseBody
     public Map<String, Object> listPermissions(@RequestParam(defaultValue = "1") int pageNum,
@@ -267,6 +315,14 @@ public class AdminController {
     @ResponseBody
     public Map<String, Object> addStore(@RequestBody Store store) {
         Map<String, Object> result = new HashMap<>();
+        if (store.getScore() != null) {
+            if (store.getScore().compareTo(new java.math.BigDecimal("0")) < 0
+                    || store.getScore().compareTo(new java.math.BigDecimal("10")) > 0) {
+                result.put("success", false);
+                result.put("message", "评分必须在 0 ~ 10 之间");
+                return result;
+            }
+        }
         try {
             boolean success = storeService.insert(store);
             result.put("success", success);
@@ -282,6 +338,14 @@ public class AdminController {
     @ResponseBody
     public Map<String, Object> updateStore(@RequestBody Store store) {
         Map<String, Object> result = new HashMap<>();
+        if (store.getScore() != null) {
+            if (store.getScore().compareTo(new java.math.BigDecimal("0")) < 0
+                    || store.getScore().compareTo(new java.math.BigDecimal("10")) > 0) {
+                result.put("success", false);
+                result.put("message", "评分必须在 0 ~ 10 之间");
+                return result;
+            }
+        }
         try {
             boolean success = storeService.update(store);
             result.put("success", success);

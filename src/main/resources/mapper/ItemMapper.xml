@@ -25,6 +25,15 @@
         select id, name, typeId, price, sales, remain, note from item where typeId = #{typeId}
     </select>
 
+    <select id="selectByIds" resultMap="itemMap">
+        select id, name, typeId, price, sales, remain, note
+        from item
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         insert into item(name, typeId, price, sales, remain, note)
         values(#{name}, #{typeId}, #{price}, #{sales}, #{remain}, #{note})

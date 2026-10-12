@@ -13,6 +13,7 @@ public interface TicketMapper {
     List<Ticket> selectByStoreId(@Param("storeId") Integer storeId);
     List<Ticket> selectByDeliveryGuyId(@Param("deliveryGuyId") Integer deliveryGuyId);
     List<Ticket> selectByUserId(@Param("userId") Integer userId);
+    List<Ticket> selectByStatus(@Param("status") String status);
     int insert(Ticket ticket);
     int update(Ticket ticket);
     int deleteById(@Param("id") Integer id);

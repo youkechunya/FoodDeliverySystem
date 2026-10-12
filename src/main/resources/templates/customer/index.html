@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a class="active" th:href="@{/api/customer/store/page}">店铺</a>
-            <a th:href="@{/api/customer/cart/page}">购物车</a>
-            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
-            <a th:href="@{/api/customer/review/page}">评价</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/customer-sidebar :: sidebar('store')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>店铺列表</h4>
@@ -46,6 +38,16 @@
         const data = await request(`/api/customer/store/list?pageNum=${pageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+        <tr>
+            <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                暂无店铺
+            </td>
+        </tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
         data.list.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -70,7 +72,7 @@
     }
 
     function toReview(storeId) {
-        location.href = `/api/customer/review/store/${storeId}`;
+        location.href = `/api/customer/review/list/page?storeId=${storeId}`;
     }
 
     load();

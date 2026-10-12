@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/store/info/page}">店铺信息</a>
-            <a class="active" th:href="@{/api/store/item/page}">商品管理</a>
-            <a th:href="@{/api/store/ticket/page}">店铺订单</a>
-            <a th:href="@{/api/store/complaint/page}">投诉处理</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/store-sidebar :: sidebar('item')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>商品管理</h4>
@@ -65,6 +57,18 @@
         const data = await request(`/api/store/item/list?pageNum=${pageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无商品，点击右上角「新增商品」添加
+                </td>
+            </tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+
         data.list.forEach(i => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -91,15 +95,24 @@
     }
 
     async function openEdit(id) {
-        const i = await request(`/api/store/item/${id}`);
-        document.getElementById('modalTitle').textContent = '编辑商品';
-        document.getElementById('f_id').value = i.id;
-        document.getElementById('f_name').value = i.name;
-        document.getElementById('f_typeId').value = i.typeId;
-        document.getElementById('f_price').value = i.price;
-        document.getElementById('f_remain').value = i.remain;
-        document.getElementById('f_note').value = i.note;
-        openModal('modal');
+        try {
+            const i = await request(`/api/store/item/${id}`);
+            if (!i || !i.id) {
+                toast('商品不存在');
+                return;
+            }
+            document.getElementById('modalTitle').textContent = '编辑商品';
+            document.getElementById('f_id').value = i.id;
+            document.getElementById('f_name').value = i.name;
+            document.getElementById('f_typeId').value = i.typeId;
+            document.getElementById('f_price').value = i.price;
+            document.getElementById('f_remain').value = i.remain;
+            document.getElementById('f_note').value = i.note;
+            openModal('modal');
+        } catch (e) {
+            toast('加载商品信息失败');
+            console.error(e);
+        }
     }
 
     async function save() {
@@ -119,7 +132,7 @@
         toast(res.message);
         if (res.success) {
             closeModal('modal');
-            load();
+            await load();
         }
     }
 
@@ -127,7 +140,10 @@
         if (!confirm('确定删除？')) return;
         const res = await request(`/api/store/item/delete/${id}`, { method: 'DELETE' });
         toast(res.message);
-        load();
+        if (res.success) {
+            pageNum = 1;
+            await load();
+        }
     }
 
     load();

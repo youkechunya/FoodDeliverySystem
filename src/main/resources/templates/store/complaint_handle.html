@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/store/info/page}">店铺信息</a>
-            <a th:href="@{/api/store/item/page}">商品管理</a>
-            <a th:href="@{/api/store/ticket/page}">店铺订单</a>
-            <a class="active" th:href="@{/api/store/complaint/page}">投诉处理</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/store-sidebar :: sidebar('complaint')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>投诉处理</h4>
@@ -38,12 +30,36 @@
 
 <script th:src="@{/js/common.js}"></script>
 <script>
-    const storeId = /*[[${session.loginUser.id}]]*/ 0;
+    let storeId = 0;
 
+    // 页面初始化：拿当前商家的店铺 id
+    async function initStore() {
+        const stores = await request('/api/store/my/stores');
+        if (!stores || stores.length === 0) {
+            toast('当前账号未绑定任何店铺');
+            return false;
+        }
+        storeId = stores[0].id;
+        return true;
+    }
+
+    // 每个 load() 开头都先 initStore
     async function load() {
+        if (!(await initStore())) return;
+        if (!storeId) return;
         const list = await request(`/api/store/complaint/list/${storeId}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无投诉
+                </td>
+            </tr>`;
+            return;
+        }
         list.forEach(c => {
             const tr = document.createElement('tr');
             tr.innerHTML = `

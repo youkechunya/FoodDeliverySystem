@@ -5,10 +5,29 @@
     <title>登录 - 快餐订制与配送系统</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        body { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a, #1e293b); }
-        .login-box { width: 380px; background: #fff; border-radius: 16px; padding: 36px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-        .login-box h2 { text-align: center; margin-bottom: 24px; color: #0f172a; }
-        .login-box .btn { width: 100%; margin-top: 8px; }
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+        }
+        .login-box {
+            width: 380px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #0f172a;
+        }
+        .login-box .btn {
+            width: 100%;
+            margin-top: 8px;
+        }
         .msg { text-align: center; font-size: 13px; margin-top: 10px; }
         .msg.error { color: #ef4444; }
         .msg.success { color: #22c55e; }
@@ -26,10 +45,20 @@
             <label>密码</label>
             <input class="form-control" type="password" name="password" required>
         </div>
+        <div class="form-group">
+            <label>角色</label>
+            <select class="form-control" name="roleId" required>
+                <option th:each="r : ${roles}"
+                        th:value="${r.id}"
+                        th:text="${r.roleName}">角色</option>
+            </select>
+        </div>
         <button class="btn btn-primary" type="submit">登录</button>
     </form>
+
     <p class="msg error" th:if="${error}" th:text="${error}"></p>
     <p class="msg success" th:if="${success}" th:text="${success}"></p>
+
     <p style="text-align:center;margin-top:16px;font-size:13px;">
         没有账号？<a th:href="@{/auth/register}" style="color:#0099cc;">去注册</a>
     </p>

@@ -1,7 +1,12 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Setter
+@Getter
 public class Store {
     private int id;
     private String name;
@@ -19,14 +24,4 @@ public class Store {
         this.status = status;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-    public BigDecimal getScore() { return score; }
-    public void setScore(BigDecimal score) { this.score = score; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 }

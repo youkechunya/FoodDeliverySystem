@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/customer/store/page}">店铺</a>
-            <a th:href="@{/api/customer/cart/page}">购物车</a>
-            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
-            <a th:href="@{/api/customer/review/page}">评价</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/customer-sidebar :: sidebar('cart')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>购物车</h4>
@@ -53,6 +45,17 @@
         const cart = getCart();
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+
+        if (cart.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;color:#94a3b8;padding:36px 0;font-size:14px;">
+                        你的购物车空空如也 ~
+                    </td>
+                </tr>`;
+            return;
+        }
+
         cart.forEach((c, i) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `

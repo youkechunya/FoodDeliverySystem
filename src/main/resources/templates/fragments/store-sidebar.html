@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" th:fragment="sidebar(active)">
+    <div class="logo">快餐配送</div>
+    <nav>
+        <a th:href="@{/api/store/info/page}"
+           th:classappend="${active == 'info'} ? 'active'">店铺信息</a>
+        <a th:href="@{/api/store/item/page}"
+           th:classappend="${active == 'item'} ? 'active'">商品管理</a>
+        <a th:href="@{/api/store/ticket/page}"
+           th:classappend="${active == 'ticket'} ? 'active'">店铺订单</a>
+        <a th:href="@{/api/store/complaint/page}"
+           th:classappend="${active == 'complaint'} ? 'active'">投诉处理</a>
+        <a th:href="@{/api/store/review/page}"
+           th:classappend="${active == 'review'} ? 'active'">店铺评价</a>
+    </nav>
+    <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+</aside>
+</body>
+</html>

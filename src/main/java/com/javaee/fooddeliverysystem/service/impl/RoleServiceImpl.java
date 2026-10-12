@@ -6,6 +6,7 @@ import com.javaee.fooddeliverysystem.mapper.UserRoleMapper;
 import com.javaee.fooddeliverysystem.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,6 +32,22 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<Role> selectRolesByUserId(Integer userId) {
         return userRoleMapper.selectRolesByUserId(userId);
+    }
+
+    /**
+     * 使用“先删除、再批量插入”的方式保存账号角色。
+     * 事务可以保证角色不会保存到一半。
+     */
+    @Override
+    @Transactional
+    public boolean updateUserRoles(Integer userId, List<Integer> roleIds) {
+        userRoleMapper.deleteByUserId(userId);
+
+        if (roleIds != null && !roleIds.isEmpty()) {
+            userRoleMapper.insertBatch(userId, roleIds);
+        }
+
+        return true;
     }
 
     @Override

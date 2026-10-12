@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/admin/account/page}">用户管理</a>
-            <a class="active" th:href="@{/api/admin/role/page}">角色管理</a>
-            <a th:href="@{/api/admin/permission/page}">权限管理</a>
-            <a th:href="@{/api/admin/store/page}">店铺管理</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/admin-sidebar :: sidebar('role')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>角色管理</h4>
@@ -61,6 +53,16 @@
         const data = await request(`/api/admin/role/list?pageNum=${pageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+        <tr>
+            <td colspan="3" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                暂无角色
+            </td>
+        </tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
         data.list.forEach(r => {
             const tr = document.createElement('tr');
             tr.innerHTML = `

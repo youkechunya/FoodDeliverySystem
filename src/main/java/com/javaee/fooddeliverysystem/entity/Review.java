@@ -1,5 +1,10 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class Review {
     private int id;
     private Integer userId;
@@ -15,12 +20,4 @@ public class Review {
         this.content = content;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
-    public Integer getStoreId() { return storeId; }
-    public void setStoreId(Integer storeId) { this.storeId = storeId; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
 }

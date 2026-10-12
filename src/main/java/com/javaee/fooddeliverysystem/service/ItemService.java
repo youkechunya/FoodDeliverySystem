@@ -9,6 +9,7 @@ public interface ItemService {
     List<Item> selectAll();
     Item selectById(@Param("id") Integer id);
     List<Item> selectByTypeId(@Param("typeId") Integer typeId);
+    List<Item> selectByIds(List<Integer> ids);
     boolean insert(Item item);
     boolean update(Item item);
     boolean deleteById(@Param("id") Integer id);

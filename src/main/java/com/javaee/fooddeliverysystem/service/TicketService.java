@@ -11,6 +11,7 @@ public interface TicketService {
     List<Ticket> selectByStoreId(@Param("storeId") Integer storeId);
     List<Ticket> selectByDeliveryGuyId(@Param("deliveryGuyId") Integer deliveryGuyId);
     List<Ticket> selectByUserId(@Param("userId") Integer userId);
+    List<Ticket> selectByStatus(String status);
     boolean insert(Ticket ticket);
     boolean update(Ticket ticket);
     boolean deleteById(@Param("id") Integer id);

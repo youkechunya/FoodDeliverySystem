@@ -40,6 +40,11 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    public List<Ticket> selectByStatus(String status) {
+        return ticketMapper.selectByStatus(status);
+    }
+
+    @Override
     public boolean insert(Ticket ticket) {
         return ticketMapper.insert(ticket) > 0;
     }

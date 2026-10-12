@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/admin/account/page}">用户管理</a>
-            <a th:href="@{/api/admin/role/page}">角色管理</a>
-            <a th:href="@{/api/admin/permission/page}">权限管理</a>
-            <a class="active" th:href="@{/api/admin/store/page}">店铺管理</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/admin-sidebar :: sidebar('store')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>店铺管理</h4>
@@ -51,12 +43,16 @@
     <div class="modal">
         <h5 id="modalTitle">新增店铺</h5>
         <input type="hidden" id="f_id">
-        <div class="form-group"><label>店铺名</label><input class="form-control" id="f_name"></div>
-        <div class="form-group"><label>地址</label><input class="form-control" id="f_address"></div>
-        <div class="form-group"><label>评分</label><input class="form-control" id="f_score" type="number" step="0.1"></div>
+        <div class="form-group"><label>店铺名</label><label for="f_name"></label><input class="form-control" id="f_name"></div>
+        <div class="form-group"><label>地址</label><label for="f_address"></label><input class="form-control" id="f_address"></div>
+        <div class="form-group">
+            <label>评分</label>
+            <label for="f_score"></label><input class="form-control" id="f_score"
+                                                type="number" step="0.1" min="0" max="10">
+        </div>
         <div class="form-group">
             <label>状态</label>
-            <select class="form-control" id="f_status">
+            <label for="f_status"></label><select class="form-control" id="f_status">
                 <option value="待审核">待审核</option>
                 <option value="通过">通过</option>
                 <option value="驳回">驳回</option>
@@ -78,6 +74,16 @@
         const data = await request(`/api/admin/store/list?pageNum=${pageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+        <tr>
+            <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                暂无店铺
+            </td>
+        </tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
         data.list.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -121,11 +127,19 @@
 
     async function save() {
         const id = document.getElementById('f_id').value;
+        const scoreStr = document.getElementById('f_score').value.trim();
+        const score = scoreStr === '' ? 0 : parseFloat(scoreStr);
+
+        if (isNaN(score) || score < 0 || score > 10) {
+            toast('评分必须在 0 ~ 10 之间');
+            return;
+        }
+
         const body = {
             id: id ? parseInt(id) : 0,
             name: document.getElementById('f_name').value,
             address: document.getElementById('f_address').value,
-            score: parseFloat(document.getElementById('f_score').value) || 0,
+            score: score,
             status: document.getElementById('f_status').value
         };
         const url = id ? '/api/admin/store/update' : '/api/admin/store/add';

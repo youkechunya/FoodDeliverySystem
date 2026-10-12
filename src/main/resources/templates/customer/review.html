@@ -7,16 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a th:href="@{/api/customer/store/page}">店铺</a>
-            <a th:href="@{/api/customer/cart/page}">购物车</a>
-            <a th:href="@{/api/customer/ticket/page}">我的订单</a>
-            <a th:href="@{/api/customer/review/page}">评价</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/customer-sidebar :: sidebar('ticket')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>发表评价</h4>
@@ -44,11 +36,9 @@
     const params = new URLSearchParams(location.search);
     const storeId = params.get('storeId') || '';
     document.getElementById('storeId').value = storeId;
-    const userId = /*[[${session.loginUser.id}]]*/ 0;
 
     async function submitReview() {
         const body = {
-            userId: userId,
             storeId: parseInt(storeId),
             content: document.getElementById('content').value
         };

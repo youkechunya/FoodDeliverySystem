@@ -124,8 +124,22 @@ body {
 }
 
 .top-bar .user-info {
-    font-size: 14px;
-    color: #475569;
+    display: inline-block;
+    padding: 4px 14px;
+    font-size: 13px;
+    color: #0369a1;
+    background: #e0f7ff;
+    border: 1px solid #bae6fd;
+    border-radius: 999px;
+    line-height: 1.4;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.top-bar .user-info:hover {
+    background: #cff3ff;
+    border-color: #7dd3fc;
+    color: #075985;
 }
 
 .content-body {

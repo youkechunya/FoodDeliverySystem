@@ -1,13 +1,19 @@
 package com.javaee.fooddeliverysystem.controller;
 
 import com.javaee.fooddeliverysystem.entity.Account;
+import com.javaee.fooddeliverysystem.entity.Role;
+import com.javaee.fooddeliverysystem.mapper.UserRoleMapper;
 import com.javaee.fooddeliverysystem.service.AccountService;
+import com.javaee.fooddeliverysystem.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /// 登录注册
 @Controller
@@ -17,13 +23,21 @@ public class LoginController {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
     @GetMapping("/login")
-    public String toLogin(HttpSession session) {
+    public String toLogin(HttpSession session, Model model) {
         if (session.getAttribute("loginUser") != null) {
             return "redirect:/main";
         }
+        model.addAttribute("roles", roleService.selectAll());
         return "login";
     }
+
 
     @GetMapping("/register")
     public String toRegister() {
@@ -33,16 +47,50 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam String account,
                         @RequestParam String password,
+                        @RequestParam Integer roleId,
                         HttpSession session,
                         Model model) {
+
+        // 找账号
+        Account user = null;
         for (Account a : accountService.selectAll()) {
-            if (a.getAccount().equals(account) && a.getPassword().equals(password)) {
-                session.setAttribute("loginUser", a);
-                return "redirect:/main";
+            if (a.getAccount().equals(account)) {
+                user = a;
+                break;
             }
         }
-        model.addAttribute("error", "用户名或密码错误！");
-        return "login";
+        if (user == null || !user.getPassword().equals(password)) {
+            model.addAttribute("error", "用户名或密码错误！");
+            model.addAttribute("roles", roleService.selectAll());
+            return "login";
+        }
+
+        // 检查该账号是否绑定了所选角色
+        List<Role> owned = roleService.selectRolesByUserId(user.getId());
+        Role selected = null;
+        for (Role r : owned) {
+            if (r.getId() == roleId) {
+                selected = r;
+                break;
+            }
+        }
+        if (selected == null) {
+            model.addAttribute("error", "你没有权限登录该角色！");
+            model.addAttribute("roles", roleService.selectAll());
+            return "login";
+        }
+
+        // 状态检查
+        if ("冻结".equals(user.getStatus())) {
+            model.addAttribute("error", "该账号已被冻结！");
+            model.addAttribute("roles", roleService.selectAll());
+            return "login";
+        }
+
+        // 写入 session
+        session.setAttribute("loginUser", user);
+        session.setAttribute("loginRole", selected);
+        return "redirect:/main";
     }
 
     @PostMapping("/register")
@@ -55,7 +103,27 @@ public class LoginController {
         user.setStatus("正常");
 
         if (accountService.insert(user)) {
+            // 找「顾客」角色 id
+            Integer customerRoleId = null;
+            for (Role r : roleService.selectAll()) {
+                if ("顾客".equals(r.getRoleName())) {
+                    customerRoleId = r.getId();
+                    break;
+                }
+            }
+            if (customerRoleId == null) {
+                customerRoleId = 5;
+            }
+
+            // 分配默认角色
+            try {
+                userRoleMapper.insert(user.getId(), customerRoleId);
+            } catch (Exception e) {
+                System.out.println("默认角色分配失败：" + e.getMessage());
+            }
+
             model.addAttribute("success", "注册成功，请登录！");
+            model.addAttribute("roles", roleService.selectAll());
             return "login";
         } else {
             model.addAttribute("error", "注册失败，请重试！");
@@ -77,6 +145,7 @@ public class LoginController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.removeAttribute("loginUser");
+        session.removeAttribute("loginRole");
         return "redirect:/auth/login";
     }
 
@@ -84,5 +153,16 @@ public class LoginController {
     @ResponseBody
     public Account getCurrentUser(HttpSession session) {
         return (Account) session.getAttribute("loginUser");
+    }
+
+    @GetMapping("/roles")
+    @ResponseBody
+    public List<Role> rolesByAccount(@RequestParam String account) {
+        for (Account a : accountService.selectAll()) {
+            if (a.getAccount().equals(account)) {
+                return roleService.selectRolesByUserId(a.getId());
+            }
+        }
+        return new ArrayList<>();
     }
 }

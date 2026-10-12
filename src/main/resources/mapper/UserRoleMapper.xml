@@ -15,14 +15,28 @@
         where ur.userId = #{userId}
     </select>
 
+    <delete id="deleteByUserId">
+        delete from user_role
+        where userId = #{userId}
+    </delete>
+
+    <insert id="insertBatch">
+        insert into user_role(userId, roleId)
+        values
+        <foreach collection="roleIds" item="roleId" separator=",">
+            (#{userId}, #{roleId})
+        </foreach>
+    </insert>
+
     <insert id="insert">
         insert into user_role(userId, roleId)
-        values(#{userId}, #{roleId})
+        values (#{userId}, #{roleId})
     </insert>
 
     <delete id="delete">
         delete from user_role
-        where userId = #{userId} and roleId = #{roleId}
+        where userId = #{userId}
+          and roleId = #{roleId}
     </delete>
 
 </mapper>

@@ -7,14 +7,8 @@
 </head>
 <body>
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="logo">快餐配送</div>
-        <nav>
-            <a class="active" th:href="@{/api/audit/store/page}">店铺审核</a>
-            <a th:href="@{/api/audit/review/page}">评价仲裁</a>
-        </nav>
-        <a class="logout" th:href="@{/auth/logout}">退出登录</a>
-    </aside>
+    <div th:replace="~{fragments/audit-sidebar :: sidebar('store')}"></div>
+
     <main class="content-area">
         <header class="top-bar">
             <h4>店铺审核</h4>
@@ -44,6 +38,17 @@
         const data = await request(`/api/audit/store/list?pageNum=${pageNum}&pageSize=${pageSize}`);
         const tbody = document.getElementById('tbody');
         tbody.innerHTML = '';
+
+        if (!data.list || data.list.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px 0;">
+                    暂无待审核店铺
+                </td>
+            </tr>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
         data.list.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `

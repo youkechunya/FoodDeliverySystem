@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside class="sidebar" th:fragment="sidebar(active)">
+    <div class="logo">快餐配送</div>
+    <nav>
+        <a th:href="@{/api/admin/account/page}"
+           th:classappend="${active == 'account'} ? 'active'">用户管理</a>
+        <a th:href="@{/api/admin/role/page}"
+           th:classappend="${active == 'role'} ? 'active'">角色管理</a>
+        <a th:href="@{/api/admin/permission/page}"
+           th:classappend="${active == 'permission'} ? 'active'">权限管理</a>
+        <a th:href="@{/api/admin/store/page}"
+           th:classappend="${active == 'store'} ? 'active'">店铺管理</a>
+    </nav>
+    <a class="logout" th:href="@{/auth/logout}">退出登录</a>
+</aside>
+
+</body>
+</html>

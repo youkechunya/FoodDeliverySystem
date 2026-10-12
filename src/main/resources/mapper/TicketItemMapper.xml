@@ -9,11 +9,15 @@
         <result column="itemId" property="itemId"/>
         <result column="quantity" property="quantity"/>
         <result column="price" property="price"/>
+        <result column="itemName" property="itemName"/>
     </resultMap>
 
     <select id="selectByTicketId" resultMap="ticketItemMap">
-        select id, ticketId, itemId, quantity, price
-        from ticket_item where ticketId = #{ticketId}
+        select ti.id, ti.ticketId, ti.itemId, ti.quantity, ti.price,
+               i.name as itemName
+        from ticket_item ti
+                 left join item i on i.id = ti.itemId
+        where ti.ticketId = #{ticketId}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">

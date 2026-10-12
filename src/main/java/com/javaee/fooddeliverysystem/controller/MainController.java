@@ -12,7 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class MainController {
@@ -26,15 +28,12 @@ public class MainController {
     @GetMapping("/main")
     public String main(HttpSession session, Model model) {
         Account user = (Account) session.getAttribute("loginUser");
-        if (user == null) {
+        Role role = (Role) session.getAttribute("loginRole");
+        if (user == null || role == null) {
             return "redirect:/auth/login";
         }
-        List<Role> roles = roleService.selectRolesByUserId(user.getId());
-        List<Menu> menus = new ArrayList<>();
-        if (roles != null && !roles.isEmpty()) {
-            menus = menuService.selectByRoleId(roles.get(0).getId());
-        }
-        model.addAttribute("menus", menus);
+        model.addAttribute("menus", menuService.selectByRoleId(role.getId()));
+        model.addAttribute("currentRole", role);
         return "main";
     }
 }

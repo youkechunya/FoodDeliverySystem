@@ -1,7 +1,13 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
 import java.util.Date;
 
+@Setter
+@Getter
 public class Ticket {
     private int id;
     private Date publishDate;
@@ -11,6 +17,7 @@ public class Ticket {
     private Integer deliveryGuyId;
     private String note;
     private Integer userId;
+    private BigDecimal deliveryRate;
 
     public Ticket() {}
 
@@ -26,20 +33,4 @@ public class Ticket {
         this.userId = userId;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public Date getPublishDate() { return publishDate; }
-    public void setPublishDate(Date publishDate) { this.publishDate = publishDate; }
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-    public Integer getStoreId() { return storeId; }
-    public void setStoreId(Integer storeId) { this.storeId = storeId; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public Integer getDeliveryGuyId() { return deliveryGuyId; }
-    public void setDeliveryGuyId(Integer deliveryGuyId) { this.deliveryGuyId = deliveryGuyId; }
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
 }
