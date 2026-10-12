@@ -1,5 +1,10 @@
 package com.javaee.fooddeliverysystem.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class UserRole {
     private int userId;
     private int roleId;
@@ -11,8 +16,4 @@ public class UserRole {
         this.roleId = roleId;
     }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
-    public int getRoleId() { return roleId; }
-    public void setRoleId(int roleId) { this.roleId = roleId; }
 }

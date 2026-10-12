@@ -5,6 +5,8 @@ import lombok.Setter;
 
 import java.util.List;
 
+@Setter
+@Getter
 public class TicketSubmitDTO {
     private String address;
     private String note;
@@ -20,12 +22,4 @@ public class TicketSubmitDTO {
 
     }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
-    public Integer getStoreId() { return storeId; }
-    public void setStoreId(Integer storeId) { this.storeId = storeId; }
-    public List<ItemEntry> getItems() { return items; }
-    public void setItems(List<ItemEntry> items) { this.items = items; }
 }
